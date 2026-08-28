@@ -1,0 +1,1030 @@
+<?php
+/**
+ * Admin edit screens for the three CPTs.
+ *
+ * Celebrity posts use a full custom inline template (rendered via
+ * edit_form_after_title) instead of a classic meta box table.
+ * height_reference and country_average use the standard meta box table.
+ *
+ * @package HeightCompare
+ */
+
+declare( strict_types=1 );
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/* ── Celebrity: disable Gutenberg, use custom template ─────────────────── */
+
+add_filter(
+	'use_block_editor_for_post_type',
+	static function ( bool $use, string $post_type ): bool {
+		return ( 'celebrity' === $post_type ) ? false : $use;
+	},
+	10,
+	2
+);
+
+/**
+ * Enqueue admin stylesheet for the celebrity edit template.
+ *
+ * @param string $hook Current admin page hook.
+ */
+function hc_admin_enqueue( string $hook ): void {
+	if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( null === $screen ) {
+		return;
+	}
+
+	if ( 'celebrity' === $screen->post_type ) {
+		wp_enqueue_style(
+			'hc-celebrity-admin',
+			HC_URI . '/assets/css/celebrity-admin.css',
+			array(),
+			HC_VERSION
+		);
+
+		// cm / ft sync + height-pair script
+		add_action( 'admin_print_footer_scripts', 'hc_celebrity_admin_js' );
+	} elseif ( 'page' === $screen->post_type && hc_is_converter_page( $screen ) ) {
+		wp_enqueue_style(
+			'hc-celebrity-admin',
+			HC_URI . '/assets/css/celebrity-admin.css',
+			array(),
+			HC_VERSION
+		);
+		add_action( 'admin_print_footer_scripts', 'hc_page_faq_js' );
+	} elseif ( array_key_exists( $screen->post_type, hc_meta_fields() ) ) {
+		// Classic dual-input sync for height_reference / country_average
+		add_action( 'admin_print_footer_scripts', 'hc_height_pair_js' );
+	}
+}
+add_action( 'admin_enqueue_scripts', 'hc_admin_enqueue' );
+
+/**
+ * Render the celebrity edit template after the post title.
+ *
+ * @param WP_Post $post Post being edited.
+ */
+function hc_celebrity_edit_template( WP_Post $post ): void {
+	if ( 'celebrity' !== $post->post_type ) {
+		return;
+	}
+	wp_nonce_field( 'hc_meta_save', 'hc_meta_nonce' );
+
+	$cm          = (float) get_post_meta( $post->ID, 'hc_height_cm', true );
+	$ft_val      = ( $cm > 0 ) ? (int) floor( $cm / 30.48 ) : 0;
+	$in_val      = ( $cm > 0 ) ? round( fmod( $cm, 30.48 ) / 2.54, 1 ) : 0.0;
+	$gender      = (string) ( get_post_meta( $post->ID, 'hc_gender', true ) ?: 'male' );
+	$country     = (string) get_post_meta( $post->ID, 'hc_country', true );
+	$cat         = (string) get_post_meta( $post->ID, 'hc_category', true );
+	$dob         = (string) get_post_meta( $post->ID, 'hc_dob', true );
+	$age_display = '';
+	if ( '' !== $dob ) {
+		$birth = DateTimeImmutable::createFromFormat( 'Y-m-d', $dob );
+		if ( $birth instanceof DateTimeImmutable ) {
+			$age_display = (string) (int) $birth->diff( new DateTimeImmutable( 'today' ) )->y;
+		}
+	}
+	$aliases     = (string) get_post_meta( $post->ID, 'hc_aliases', true );
+	$source          = (string) get_post_meta( $post->ID, 'hc_source_url', true );
+	$volume          = (int) get_post_meta( $post->ID, 'hc_search_volume', true );
+	$faq_heading     = (string) get_post_meta( $post->ID, 'hc_faq_heading', true );
+	$first_name      = explode( ' ', get_the_title( $post ) )[0];
+	$lede_text       = (string) get_post_meta( $post->ID, 'hc_lede_text', true );
+	$tpl_show_stats  = (string) get_post_meta( $post->ID, 'hc_tpl_show_stats', true );
+	$tpl_show_cta    = (string) get_post_meta( $post->ID, 'hc_tpl_show_cta', true );
+	$tpl_show_related = (string) get_post_meta( $post->ID, 'hc_tpl_show_related', true );
+	$tpl_show_faq    = (string) get_post_meta( $post->ID, 'hc_tpl_show_faq', true );
+	// '' = inherit global default, '1' = force show, '0' = force hide.
+	$global_tpl = hc_get_template_defaults();
+	?>
+	<div class="hc-cel-tpl">
+
+		<!-- ── Section: Height ──────────────────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">📏</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Height', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__height-row hc-height-pair" data-key="hc_height_cm">
+				<div class="hc-cel-tpl__height-field">
+					<label class="hc-cel-tpl__label" for="hc_height_cm">cm</label>
+					<input class="hc-cel-tpl__num hc-cm" type="number" step="0.1" min="1" max="300"
+						id="hc_height_cm" name="hc_height_cm"
+						value="<?php echo esc_attr( $cm > 0 ? (string) $cm : '' ); ?>">
+				</div>
+				<span class="hc-cel-tpl__eq">=</span>
+				<div class="hc-cel-tpl__height-field">
+					<label class="hc-cel-tpl__label" for="hc_cel_ft">ft</label>
+					<input class="hc-cel-tpl__num hc-ft" type="number" step="1" min="0" max="9"
+						id="hc_cel_ft"
+						value="<?php echo esc_attr( $cm > 0 ? (string) $ft_val : '' ); ?>"
+						aria-label="<?php esc_attr_e( 'feet', 'height-compare' ); ?>">
+				</div>
+				<div class="hc-cel-tpl__height-field">
+					<label class="hc-cel-tpl__label" for="hc_cel_in">in</label>
+					<input class="hc-cel-tpl__num hc-in" type="number" step="0.1" min="0" max="11.9"
+						id="hc_cel_in"
+						value="<?php echo esc_attr( $cm > 0 ? (string) $in_val : '' ); ?>"
+						aria-label="<?php esc_attr_e( 'inches', 'height-compare' ); ?>">
+				</div>
+			</div>
+		</div>
+
+		<!-- ── Section: Personal Details ───────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">👤</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Personal Details', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_gender">
+						<?php esc_html_e( 'Gender', 'height-compare' ); ?>
+					</label>
+					<select class="hc-cel-tpl__select" name="hc_gender" id="hc_gender">
+						<?php foreach ( array( 'male', 'female', 'child' ) as $opt ) : ?>
+						<option value="<?php echo esc_attr( $opt ); ?>"
+							<?php selected( $gender, $opt ); ?>>
+							<?php echo esc_html( ucfirst( $opt ) ); ?>
+						</option>
+						<?php endforeach; ?>
+					</select>
+				</div>
+
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_dob">
+						<?php esc_html_e( 'Date of Birth', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint" id="hc_dob_age_hint"><?php echo '' !== $age_display ? 'Age: ' . esc_html( $age_display ) : ''; ?></span>
+					</label>
+					<input class="hc-cel-tpl__input" type="date"
+						name="hc_dob" id="hc_dob"
+						value="<?php echo esc_attr( $dob ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_aliases">
+						<?php esc_html_e( 'Aliases', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint">comma-separated</span>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_aliases" id="hc_aliases"
+						value="<?php echo esc_attr( $aliases ); ?>"
+						placeholder="<?php esc_attr_e( 'The Rock, Dwayne Johnson', 'height-compare' ); ?>">
+				</div>
+
+			</div>
+		</div>
+
+		<!-- ── Section: SEO ────────────────────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">🔍</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'SEO', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label" for="hc_source_url">
+						<?php esc_html_e( 'Source URL', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="url"
+						name="hc_source_url" id="hc_source_url"
+						value="<?php echo esc_attr( $source ); ?>"
+						placeholder="https://…">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_search_volume">
+						<?php esc_html_e( 'Monthly Search Volume', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="number" min="0"
+						name="hc_search_volume" id="hc_search_volume"
+						value="<?php echo esc_attr( $volume > 0 ? (string) $volume : '' ); ?>"
+						placeholder="0">
+					<p class="hc-cel-tpl__desc">
+						<?php esc_html_e( 'Versus pages are indexed when ≥ 100', 'height-compare' ); ?>
+					</p>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- ── Section: Page Content ────────────────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">📄</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Page Content', 'height-compare' ); ?></h2>
+			</div>
+
+			<!-- FAQ Section Heading -->
+			<div class="hc-cel-tpl__field hc-cel-tpl__field--full" style="margin-bottom:20px">
+				<label class="hc-cel-tpl__label" for="hc_faq_heading">
+					<?php esc_html_e( 'FAQ Section Heading', 'height-compare' ); ?>
+					<span class="hc-cel-tpl__hint">
+						<?php echo esc_html( sprintf( __( 'Default: "%s height — FAQ"', 'height-compare' ), $first_name ) ); ?>
+					</span>
+				</label>
+				<input class="hc-cel-tpl__input" type="text"
+					name="hc_faq_heading" id="hc_faq_heading"
+					value="<?php echo esc_attr( $faq_heading ); ?>"
+					placeholder="<?php echo esc_attr( sprintf( __( '%s height — FAQ', 'height-compare' ), $first_name ) ); ?>">
+			</div>
+
+			<!-- Custom FAQs repeater -->
+			<div style="margin-bottom:8px">
+				<strong><?php esc_html_e( 'Custom FAQs', 'height-compare' ); ?></strong>
+				<span class="hc-cel-tpl__hint" style="margin-left:6px">
+					<?php esc_html_e( 'Added above the auto-generated FAQs on the page', 'height-compare' ); ?>
+				</span>
+			</div>
+
+			<div class="hc-faq-list" id="hc-faq-list">
+				<?php
+				$hc_saved_faqs = (string) get_post_meta( $post->ID, 'hc_faqs', true );
+				$hc_faqs_arr   = ( '' !== $hc_saved_faqs ) ? json_decode( $hc_saved_faqs, true ) : array();
+				$hc_faqs_arr   = is_array( $hc_faqs_arr ) ? $hc_faqs_arr : array();
+				foreach ( $hc_faqs_arr as $hc_faq ) :
+					$hc_fq = isset( $hc_faq['q'] ) && is_string( $hc_faq['q'] ) ? $hc_faq['q'] : '';
+					$hc_fa = isset( $hc_faq['a'] ) && is_string( $hc_faq['a'] ) ? $hc_faq['a'] : '';
+				?>
+				<div class="hc-faq-row">
+					<div class="hc-faq-row__fields">
+						<div class="hc-cel-tpl__field">
+							<label class="hc-cel-tpl__label"><?php esc_html_e( 'Question', 'height-compare' ); ?></label>
+							<input class="hc-cel-tpl__input" type="text" name="hc_faq_q[]"
+								value="<?php echo esc_attr( $hc_fq ); ?>"
+								placeholder="<?php esc_attr_e( 'e.g. How tall is …?', 'height-compare' ); ?>">
+						</div>
+						<div class="hc-cel-tpl__field">
+							<label class="hc-cel-tpl__label"><?php esc_html_e( 'Answer', 'height-compare' ); ?></label>
+							<textarea class="hc-cel-tpl__textarea" name="hc_faq_a[]" rows="2"
+								placeholder="<?php esc_attr_e( 'e.g. They are …', 'height-compare' ); ?>"><?php echo esc_textarea( $hc_fa ); ?></textarea>
+						</div>
+					</div>
+					<button type="button" class="hc-faq-remove" aria-label="<?php esc_attr_e( 'Remove FAQ', 'height-compare' ); ?>">✕</button>
+				</div>
+				<?php endforeach; ?>
+			</div>
+
+			<button type="button" class="button hc-faq-add" id="hc-faq-add">
+				<?php esc_html_e( '+ Add FAQ', 'height-compare' ); ?>
+			</button>
+
+			<!-- Auto-generated FAQs preview (read-only) -->
+			<?php if ( $cm > 0 ) : ?>
+			<div class="hc-cel-tpl__autofaq-preview" style="margin-top:20px;padding:14px 16px;background:#f6f7f7;border-radius:4px;border:1px solid #dcdcde">
+				<p style="margin:0 0 10px;font-size:13px;color:#50575e">
+					<strong><?php esc_html_e( 'Auto-generated FAQs', 'height-compare' ); ?></strong>
+					— <?php esc_html_e( 'These appear on the page automatically. To customise them, add Custom FAQs above — they display first and you can override any of these.', 'height-compare' ); ?>
+				</p>
+				<?php
+				$hc_auto_faqs = hc_celebrity_faqs( $post );
+				foreach ( $hc_auto_faqs as $hc_q => $hc_a ) :
+				?>
+				<details style="margin-bottom:6px;font-size:13px">
+					<summary style="cursor:pointer;color:#1d2327;font-weight:500;padding:4px 0"><?php echo esc_html( $hc_q ); ?></summary>
+					<p style="margin:4px 0 0 12px;color:#50575e"><?php echo esc_html( $hc_a ); ?></p>
+				</details>
+				<?php endforeach; ?>
+			</div>
+			<?php endif; ?>
+
+		</div>
+
+		<!-- ── Section: Page Template ───────────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">🗂️</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Page Template', 'height-compare' ); ?></h2>
+			</div>
+			<p style="margin:0 0 14px;font-size:13px;color:#646970">
+				<?php esc_html_e( 'These settings apply to this celebrity only and override the global template defaults.', 'height-compare' ); ?>
+				<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=celebrity&page=hc-template-settings' ) ); ?>" style="margin-left:4px">
+					<?php esc_html_e( 'Edit global defaults →', 'height-compare' ); ?>
+				</a>
+			</p>
+
+			<!-- Custom lede text -->
+			<div class="hc-cel-tpl__field hc-cel-tpl__field--full" style="margin-bottom:20px">
+				<label class="hc-cel-tpl__label" for="hc_lede_text">
+					<?php esc_html_e( 'Custom Intro Text', 'height-compare' ); ?>
+					<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Leave blank to use the auto-generated sentence.', 'height-compare' ); ?></span>
+				</label>
+				<textarea class="hc-cel-tpl__input" id="hc_lede_text" name="hc_lede_text"
+					rows="3" style="resize:vertical"><?php echo esc_textarea( $lede_text ); ?></textarea>
+			</div>
+
+			<!-- Section visibility toggles -->
+			<div style="margin-bottom:6px"><strong style="font-size:13px"><?php esc_html_e( 'Show / Hide Sections', 'height-compare' ); ?></strong></div>
+			<p style="margin:0 0 12px;font-size:12px;color:#646970">
+				<?php esc_html_e( '"Default" uses the global template setting. Tick or untick to override for this page only.', 'height-compare' ); ?>
+			</p>
+			<table style="border-collapse:collapse;width:100%;font-size:13px">
+				<thead>
+					<tr>
+						<th style="text-align:left;padding:4px 8px 8px 0;color:#646970;font-weight:600"><?php esc_html_e( 'Section', 'height-compare' ); ?></th>
+						<th style="text-align:center;padding:4px 8px 8px;color:#646970;font-weight:600"><?php esc_html_e( 'Default', 'height-compare' ); ?></th>
+						<th style="text-align:center;padding:4px 8px 8px;color:#646970;font-weight:600"><?php esc_html_e( 'Show', 'height-compare' ); ?></th>
+						<th style="text-align:center;padding:4px 8px 8px;color:#646970;font-weight:600"><?php esc_html_e( 'Hide', 'height-compare' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php
+				$hc_tpl_rows = array(
+					array(
+						'key'     => 'hc_tpl_show_stats',
+						'label'   => __( 'Stats table (height in cm/ft/m)', 'height-compare' ),
+						'current' => $tpl_show_stats,
+						'global'  => ! empty( $global_tpl['show_stats'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
+					),
+					array(
+						'key'     => 'hc_tpl_show_cta',
+						'label'   => __( 'Compare CTA', 'height-compare' ),
+						'current' => $tpl_show_cta,
+						'global'  => ! empty( $global_tpl['show_cta'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
+					),
+					array(
+						'key'     => 'hc_tpl_show_related',
+						'label'   => __( 'Related Celebrities', 'height-compare' ),
+						'current' => $tpl_show_related,
+						'global'  => ! empty( $global_tpl['show_related'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
+					),
+					array(
+						'key'     => 'hc_tpl_show_faq',
+						'label'   => __( 'FAQ Section', 'height-compare' ),
+						'current' => $tpl_show_faq,
+						'global'  => ! empty( $global_tpl['show_faq'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
+					),
+				);
+				foreach ( $hc_tpl_rows as $hc_row ) :
+				?>
+				<tr style="border-top:1px solid #f0f0f1">
+					<td style="padding:8px 8px 8px 0"><?php echo esc_html( $hc_row['label'] ); ?></td>
+					<td style="text-align:center;color:#646970;padding:8px"><?php echo esc_html( $hc_row['global'] ); ?></td>
+					<td style="text-align:center;padding:8px">
+						<input type="radio" name="<?php echo esc_attr( $hc_row['key'] ); ?>" value="1"
+							<?php checked( '1', $hc_row['current'] ); ?>>
+					</td>
+					<td style="text-align:center;padding:8px">
+						<input type="radio" name="<?php echo esc_attr( $hc_row['key'] ); ?>" value="0"
+							<?php checked( '0', $hc_row['current'] ); ?>>
+					</td>
+				</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+			<p style="margin:8px 0 0;font-size:12px;color:#646970">
+				<?php esc_html_e( 'To reset a row to the global default, deselect both radio buttons (click the selected one again to deselect, or leave both blank).', 'height-compare' ); ?>
+			</p>
+		</div>
+
+	</div><!-- /hc-cel-tpl -->
+	<?php
+}
+add_action( 'edit_form_after_title', 'hc_celebrity_edit_template' );
+
+/**
+ * Whether the current admin screen is editing the height-converter page.
+ *
+ * @param WP_Screen $screen Current screen.
+ */
+function hc_is_converter_page( WP_Screen $screen ): bool {
+	if ( 'page' !== $screen->post_type ) {
+		return false;
+	}
+	$post_id = (int) ( $_GET['post'] ?? 0 );
+	if ( $post_id <= 0 ) {
+		return false;
+	}
+	return 'height-converter' === (string) get_post_field( 'post_name', $post_id );
+}
+
+/* ── Classic meta boxes for height_reference & country_average ─────────── */
+
+function hc_add_meta_boxes(): void {
+	$meta_box_types = array_filter(
+		array_keys( hc_meta_fields() ),
+		static fn( string $t ) => 'celebrity' !== $t
+	);
+	foreach ( $meta_box_types as $post_type ) {
+		add_meta_box(
+			'hc-fields',
+			'Height Compare Data',
+			'hc_render_meta_box',
+			$post_type,
+			'normal',
+			'high'
+		);
+	}
+
+	// FAQ meta box on the height-converter page edit screen.
+	add_meta_box(
+		'hc-page-faqs',
+		__( 'Page FAQs', 'height-compare' ),
+		'hc_render_page_faq_box',
+		'page',
+		'normal',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'hc_add_meta_boxes' );
+
+/**
+ * Render the FAQ repeater meta box for the height-converter page.
+ * The box is registered for all pages but returns early unless this is the
+ * height-converter page, keeping the admin tidy everywhere else.
+ *
+ * @param WP_Post $post Post being edited.
+ */
+function hc_render_page_faq_box( WP_Post $post ): void {
+	// Only show on the height-converter page.
+	if ( 'page' !== $post->post_type ) {
+		return;
+	}
+	$converter = get_page_by_path( 'height-converter' );
+	if ( ! $converter instanceof WP_Post || (int) $post->ID !== (int) $converter->ID ) {
+		return;
+	}
+
+	wp_nonce_field( 'hc_page_faqs_save', 'hc_page_faqs_nonce' );
+
+	$raw  = (string) get_post_meta( $post->ID, 'hc_page_faqs', true );
+	$faqs = ( '' !== $raw ) ? json_decode( $raw, true ) : array();
+	$faqs = is_array( $faqs ) ? $faqs : array();
+	?>
+	<p style="color:#646970;margin-bottom:12px">
+		<?php esc_html_e( 'These FAQs appear above the built-in converter FAQs on the front end.', 'height-compare' ); ?>
+	</p>
+	<div class="hc-faq-list" id="hc-page-faq-list">
+		<?php foreach ( $faqs as $faq ) :
+			$fq = isset( $faq['q'] ) && is_string( $faq['q'] ) ? $faq['q'] : '';
+			$fa = isset( $faq['a'] ) && is_string( $faq['a'] ) ? $faq['a'] : '';
+		?>
+		<div class="hc-faq-row">
+			<div class="hc-faq-row__fields">
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label"><?php esc_html_e( 'Question', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_page_faq_q[]"
+						value="<?php echo esc_attr( $fq ); ?>"
+						placeholder="<?php esc_attr_e( 'e.g. What is 5ft 11 in cm?', 'height-compare' ); ?>">
+				</div>
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label"><?php esc_html_e( 'Answer', 'height-compare' ); ?></label>
+					<textarea class="hc-cel-tpl__textarea" name="hc_page_faq_a[]" rows="2"
+						placeholder="<?php esc_attr_e( 'e.g. 5 ft 11 in = 180.3 cm.', 'height-compare' ); ?>"><?php echo esc_textarea( $fa ); ?></textarea>
+				</div>
+			</div>
+			<button type="button" class="hc-faq-remove" aria-label="<?php esc_attr_e( 'Remove FAQ', 'height-compare' ); ?>">✕</button>
+		</div>
+		<?php endforeach; ?>
+	</div>
+	<button type="button" class="button hc-faq-add" id="hc-page-faq-add">
+		<?php esc_html_e( '+ Add FAQ', 'height-compare' ); ?>
+	</button>
+	<?php
+}
+
+/**
+ * JS for the height-converter page FAQ repeater.
+ */
+function hc_page_faq_js(): void {
+	$q_label      = esc_js( __( 'Question', 'height-compare' ) );
+	$a_label      = esc_js( __( 'Answer', 'height-compare' ) );
+	$q_ph         = esc_js( __( 'e.g. What is 5ft 11 in cm?', 'height-compare' ) );
+	$a_ph         = esc_js( __( 'e.g. 5 ft 11 in = 180.3 cm.', 'height-compare' ) );
+	$remove_label = esc_js( __( 'Remove FAQ', 'height-compare' ) );
+	?>
+	<script>
+	(function () {
+		var list = document.getElementById('hc-page-faq-list');
+		var add  = document.getElementById('hc-page-faq-add');
+		if (!list || !add) return;
+
+		function makeRow() {
+			var row = document.createElement('div');
+			row.className = 'hc-faq-row';
+			row.innerHTML =
+				'<div class="hc-faq-row__fields">' +
+					'<div class="hc-cel-tpl__field">' +
+						'<label class="hc-cel-tpl__label"><?php echo $q_label; ?></label>' +
+						'<input class="hc-cel-tpl__input" type="text" name="hc_page_faq_q[]"' +
+							' placeholder="<?php echo $q_ph; ?>">' +
+					'</div>' +
+					'<div class="hc-cel-tpl__field">' +
+						'<label class="hc-cel-tpl__label"><?php echo $a_label; ?></label>' +
+						'<textarea class="hc-cel-tpl__textarea" name="hc_page_faq_a[]" rows="2"' +
+							' placeholder="<?php echo $a_ph; ?>"></textarea>' +
+					'</div>' +
+				'</div>' +
+				'<button type="button" class="hc-faq-remove" aria-label="<?php echo $remove_label; ?>">✕</button>';
+			row.querySelector('.hc-faq-remove').addEventListener('click', function () { row.remove(); });
+			return row;
+		}
+
+		list.querySelectorAll('.hc-faq-remove').forEach(function (btn) {
+			btn.addEventListener('click', function () { btn.closest('.hc-faq-row').remove(); });
+		});
+
+		add.addEventListener('click', function () {
+			var row = makeRow();
+			list.appendChild(row);
+			var inp = row.querySelector('input');
+			if (inp) inp.focus();
+		});
+	})();
+	</script>
+	<?php
+}
+
+/**
+ * Save height-converter page FAQs.
+ *
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    Post object.
+ */
+function hc_save_page_faqs( int $post_id, WP_Post $post ): void {
+	if ( ! isset( $_POST['hc_page_faqs_nonce'] )
+		|| ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['hc_page_faqs_nonce'] ) ), 'hc_page_faqs_save' )
+	) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( 'page' !== $post->post_type ) {
+		return;
+	}
+
+	$raw_qs = isset( $_POST['hc_page_faq_q'] ) && is_array( $_POST['hc_page_faq_q'] )
+		? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_page_faq_q'] ) )
+		: array();
+	$raw_as = isset( $_POST['hc_page_faq_a'] ) && is_array( $_POST['hc_page_faq_a'] )
+		? array_map( 'sanitize_textarea_field', array_map( 'wp_unslash', $_POST['hc_page_faq_a'] ) )
+		: array();
+
+	$faqs = array();
+	foreach ( $raw_qs as $i => $q ) {
+		$q = trim( $q );
+		$a = trim( $raw_as[ $i ] ?? '' );
+		if ( '' !== $q && '' !== $a ) {
+			$faqs[] = array( 'q' => $q, 'a' => $a );
+		}
+	}
+
+	if ( array() === $faqs ) {
+		delete_post_meta( $post_id, 'hc_page_faqs' );
+	} else {
+		update_post_meta( $post_id, 'hc_page_faqs', wp_json_encode( $faqs ) );
+	}
+}
+add_action( 'save_post_page', 'hc_save_page_faqs', 10, 2 );
+
+/**
+ * Render classic meta box table for height_reference / country_average.
+ *
+ * @param WP_Post $post Post being edited.
+ */
+function hc_render_meta_box( WP_Post $post ): void {
+	$fields = hc_meta_fields()[ $post->post_type ] ?? array();
+	if ( array() === $fields ) {
+		return;
+	}
+	wp_nonce_field( 'hc_meta_save', 'hc_meta_nonce' );
+
+	echo '<table class="form-table" role="presentation"><tbody>';
+	foreach ( $fields as $key => $def ) {
+		$value = get_post_meta( $post->ID, $key, true );
+		$value = is_scalar( $value ) ? (string) $value : '';
+		echo '<tr><th scope="row"><label for="' . esc_attr( $key ) . '">' . esc_html( $def['label'] ) . '</label></th><td>';
+
+		if ( 'hc_height_cm' === $key || 'hc_avg_male_cm' === $key || 'hc_avg_female_cm' === $key ) {
+			hc_render_height_input( $key, $value );
+		} elseif ( 'hc_gender' === $key ) {
+			echo '<select id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '">';
+			foreach ( array( 'male', 'female', 'child' ) as $opt ) {
+				printf(
+					'<option value="%1$s"%2$s>%3$s</option>',
+					esc_attr( $opt ),
+					selected( $value, $opt, false ),
+					esc_html( ucfirst( $opt ) )
+				);
+			}
+			echo '</select>';
+		} else {
+			$type = ( 'integer' === $def['type'] ) ? 'number' : 'text';
+			printf(
+				'<input type="%1$s" class="regular-text" id="%2$s" name="%2$s" value="%3$s">',
+				esc_attr( $type ),
+				esc_attr( $key ),
+				esc_attr( $value )
+			);
+		}
+		echo '</td></tr>';
+	}
+	echo '</tbody></table>';
+}
+
+/**
+ * Dual cm / ft+in input pair (used in classic meta box for non-celebrity CPTs).
+ *
+ * @param string $key   Meta key.
+ * @param string $value Current cm value.
+ */
+function hc_render_height_input( string $key, string $value ): void {
+	$cm = ( '' !== $value ) ? (float) $value : 0.0;
+	$ft = ( $cm > 0 ) ? (int) floor( $cm / 30.48 ) : 0;
+	$in = ( $cm > 0 ) ? round( fmod( $cm, 30.48 ) / 2.54, 1 ) : 0.0;
+	?>
+	<span class="hc-height-pair" data-key="<?php echo esc_attr( $key ); ?>">
+		<input type="number" step="0.1" min="0" max="30000" id="<?php echo esc_attr( $key ); ?>"
+			name="<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $cm > 0 ? (string) $cm : '' ); ?>"
+			class="small-text hc-cm"> cm
+		&nbsp;=&nbsp;
+		<input type="number" step="1" min="0" class="small-text hc-ft" value="<?php echo esc_attr( $cm > 0 ? (string) $ft : '' ); ?>" aria-label="feet"> ft
+		<input type="number" step="0.1" min="0" max="11.9" class="small-text hc-in" value="<?php echo esc_attr( $cm > 0 ? (string) $in : '' ); ?>" aria-label="inches"> in
+	</span>
+	<?php
+}
+
+/**
+ * Inline JS for the celebrity custom template (cm ↔ ft/in sync).
+ */
+function hc_celebrity_admin_js(): void {
+	$add_label    = esc_js( __( '+ Add FAQ', 'height-compare' ) );
+	$q_label      = esc_js( __( 'Question', 'height-compare' ) );
+	$a_label      = esc_js( __( 'Answer', 'height-compare' ) );
+	$q_ph         = esc_js( __( 'e.g. How tall is …?', 'height-compare' ) );
+	$a_ph         = esc_js( __( 'e.g. They are …', 'height-compare' ) );
+	$remove_label = esc_js( __( 'Remove FAQ', 'height-compare' ) );
+	?>
+	<script>
+	/* ── cm ↔ ft/in sync ─────────────────────────────────────────────── */
+	document.querySelectorAll('.hc-height-pair').forEach(function(pair) {
+		var cm   = pair.querySelector('.hc-cm');
+		var ft   = pair.querySelector('.hc-ft');
+		var inch = pair.querySelector('.hc-in');
+		function fromCm() {
+			var v = parseFloat(cm.value);
+			if (!isFinite(v) || v <= 0) { ft.value = ''; inch.value = ''; return; }
+			ft.value   = Math.floor(v / 30.48);
+			inch.value = Math.round((v % 30.48) / 2.54 * 10) / 10;
+		}
+		function fromFt() {
+			var f = parseFloat(ft.value) || 0;
+			var i = parseFloat(inch.value) || 0;
+			if (f <= 0 && i <= 0) return;
+			cm.value = Math.round((f * 30.48 + i * 2.54) * 10) / 10;
+		}
+		cm.addEventListener('input', fromCm);
+		ft.addEventListener('input', fromFt);
+		inch.addEventListener('input', fromFt);
+	});
+
+	/* ── DOB → age hint ──────────────────────────────────────────────── */
+	(function () {
+		var dob  = document.getElementById('hc_dob');
+		var hint = document.getElementById('hc_dob_age_hint');
+		if (!dob || !hint) return;
+		function refresh() {
+			var v = dob.value;
+			if (!v) { hint.textContent = ''; return; }
+			var b = new Date(v), t = new Date();
+			var age = t.getFullYear() - b.getFullYear();
+			var m = t.getMonth() - b.getMonth();
+			if (m < 0 || (m === 0 && t.getDate() < b.getDate())) age--;
+			hint.textContent = age >= 0 ? 'Age: ' + age : '';
+		}
+		dob.addEventListener('change', refresh);
+		refresh();
+	})();
+
+	/* ── FAQ repeater ─────────────────────────────────────────────────── */
+	var faqList = document.getElementById('hc-faq-list');
+	var faqAdd  = document.getElementById('hc-faq-add');
+
+	function makeFaqRow(q, a) {
+		var row = document.createElement('div');
+		row.className = 'hc-faq-row';
+		row.innerHTML =
+			'<div class="hc-faq-row__fields">' +
+				'<div class="hc-cel-tpl__field">' +
+					'<label class="hc-cel-tpl__label"><?php echo $q_label; ?></label>' +
+					'<input class="hc-cel-tpl__input" type="text" name="hc_faq_q[]"' +
+						' value="' + (q || '').replace(/"/g, '&quot;') + '"' +
+						' placeholder="<?php echo $q_ph; ?>">' +
+				'</div>' +
+				'<div class="hc-cel-tpl__field">' +
+					'<label class="hc-cel-tpl__label"><?php echo $a_label; ?></label>' +
+					'<textarea class="hc-cel-tpl__textarea" name="hc_faq_a[]" rows="2"' +
+						' placeholder="<?php echo $a_ph; ?>">' + (a || '') + '</textarea>' +
+				'</div>' +
+			'</div>' +
+			'<button type="button" class="hc-faq-remove" aria-label="<?php echo $remove_label; ?>">✕</button>';
+		row.querySelector('.hc-faq-remove').addEventListener('click', function() {
+			row.remove();
+		});
+		return row;
+	}
+
+	if (faqList) {
+		/* Wire remove buttons on existing (PHP-rendered) rows */
+		faqList.querySelectorAll('.hc-faq-remove').forEach(function(btn) {
+			btn.addEventListener('click', function() { btn.closest('.hc-faq-row').remove(); });
+		});
+	}
+
+	if (faqAdd && faqList) {
+		faqAdd.addEventListener('click', function() {
+			faqList.appendChild(makeFaqRow('', ''));
+			var newInput = faqList.lastElementChild.querySelector('input');
+			if (newInput) newInput.focus();
+		});
+	}
+	</script>
+	<?php
+}
+
+/**
+ * Inline JS for classic height-pair meta boxes (height_reference / country_average).
+ */
+function hc_height_pair_js(): void {
+	hc_celebrity_admin_js();
+}
+
+/**
+ * Save all CPT meta on post save.
+ *
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    Post object.
+ */
+function hc_save_meta( int $post_id, WP_Post $post ): void {
+	if ( ! isset( $_POST['hc_meta_nonce'] )
+		|| ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['hc_meta_nonce'] ) ), 'hc_meta_save' )
+	) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$fields = hc_meta_fields()[ $post->post_type ] ?? array();
+	foreach ( $fields as $key => $def ) {
+		if ( ! isset( $_POST[ $key ] ) ) {
+			continue;
+		}
+		$raw   = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+		$clean = call_user_func( $def['sanitize'], $raw );
+		if ( '' === $clean || 0 === $clean || 0.0 === $clean ) {
+			delete_post_meta( $post_id, $key );
+		} else {
+			update_post_meta( $post_id, $key, $clean );
+		}
+	}
+
+	// Save celebrity-specific fields.
+	if ( 'celebrity' === $post->post_type ) {
+
+		// FAQ heading.
+		$faq_heading = isset( $_POST['hc_faq_heading'] )
+			? sanitize_text_field( wp_unslash( $_POST['hc_faq_heading'] ) )
+			: '';
+		if ( '' === trim( $faq_heading ) ) {
+			delete_post_meta( $post_id, 'hc_faq_heading' );
+		} else {
+			update_post_meta( $post_id, 'hc_faq_heading', $faq_heading );
+		}
+
+		// Custom lede text.
+		$lede = isset( $_POST['hc_lede_text'] )
+			? sanitize_textarea_field( wp_unslash( $_POST['hc_lede_text'] ) )
+			: '';
+		if ( '' === trim( $lede ) ) {
+			delete_post_meta( $post_id, 'hc_lede_text' );
+		} else {
+			update_post_meta( $post_id, 'hc_lede_text', $lede );
+		}
+
+		// Per-celebrity section visibility overrides ('1', '0', or '' = global default).
+		foreach ( array( 'hc_tpl_show_stats', 'hc_tpl_show_cta', 'hc_tpl_show_related', 'hc_tpl_show_faq' ) as $tpl_key ) {
+			$val = isset( $_POST[ $tpl_key ] ) ? sanitize_key( wp_unslash( $_POST[ $tpl_key ] ) ) : '';
+			if ( '' === $val || ( '1' !== $val && '0' !== $val ) ) {
+				delete_post_meta( $post_id, $tpl_key );
+			} else {
+				update_post_meta( $post_id, $tpl_key, $val );
+			}
+		}
+	}
+
+	// DOB + auto age-group assignment.
+	if ( 'celebrity' === $post->post_type ) {
+		$dob = isset( $_POST['hc_dob'] )
+			? sanitize_text_field( wp_unslash( $_POST['hc_dob'] ) )
+			: '';
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $dob ) ) {
+			update_post_meta( $post_id, 'hc_dob', $dob );
+			hc_assign_age_group( $post_id );
+		} else {
+			delete_post_meta( $post_id, 'hc_dob' );
+		}
+		// Height group is assigned from the already-saved hc_height_cm.
+		hc_assign_height_group( $post_id );
+	}
+
+	// Save custom FAQs for celebrity posts.
+	if ( 'celebrity' === $post->post_type ) {
+		$raw_qs = isset( $_POST['hc_faq_q'] ) && is_array( $_POST['hc_faq_q'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_faq_q'] ) )
+			: array();
+		$raw_as = isset( $_POST['hc_faq_a'] ) && is_array( $_POST['hc_faq_a'] )
+			? array_map( 'sanitize_textarea_field', array_map( 'wp_unslash', $_POST['hc_faq_a'] ) )
+			: array();
+		$hc_custom_faqs = array();
+		foreach ( $raw_qs as $i => $q ) {
+			$q = trim( $q );
+			$a = trim( $raw_as[ $i ] ?? '' );
+			if ( '' !== $q && '' !== $a ) {
+				$hc_custom_faqs[] = array( 'q' => $q, 'a' => $a );
+			}
+		}
+		if ( array() === $hc_custom_faqs ) {
+			delete_post_meta( $post_id, 'hc_faqs' );
+		} else {
+			update_post_meta( $post_id, 'hc_faqs', wp_json_encode( $hc_custom_faqs ) );
+		}
+	}
+
+	hc_flush_preset_cache();
+}
+add_action( 'save_post', 'hc_save_meta', 10, 2 );
+
+/* ── Global celebrity template defaults ────────────────────────────────── */
+
+/**
+ * Returns the global celebrity page template defaults from wp_options.
+ *
+ * @return array{show_stats:bool,show_cta:bool,show_related:bool,show_faq:bool,lede_template:string}
+ */
+function hc_get_template_defaults(): array {
+	$saved = get_option( 'hc_celeb_template', array() );
+	$saved = is_array( $saved ) ? $saved : array();
+	return array(
+		'show_stats'   => isset( $saved['show_stats'] ) ? (bool) $saved['show_stats'] : true,
+		'show_cta'     => isset( $saved['show_cta'] ) ? (bool) $saved['show_cta'] : true,
+		'show_related' => isset( $saved['show_related'] ) ? (bool) $saved['show_related'] : true,
+		'show_faq'     => isset( $saved['show_faq'] ) ? (bool) $saved['show_faq'] : true,
+		'lede_template' => isset( $saved['lede_template'] ) ? (string) $saved['lede_template'] : '',
+	);
+}
+
+/**
+ * Resolve whether a section is visible for a specific celebrity post.
+ * Per-celebrity meta ('1'/'0') overrides the global default.
+ *
+ * @param int    $post_id   Celebrity post ID.
+ * @param string $section   Key: 'stats', 'cta', 'related', 'faq'.
+ * @param array  $defaults  From hc_get_template_defaults().
+ */
+function hc_tpl_section_visible( int $post_id, string $section, array $defaults ): bool {
+	$meta_key = 'hc_tpl_show_' . $section;
+	$override = (string) get_post_meta( $post_id, $meta_key, true );
+	if ( '1' === $override ) {
+		return true;
+	}
+	if ( '0' === $override ) {
+		return false;
+	}
+	return ! empty( $defaults[ 'show_' . $section ] );
+}
+
+/**
+ * Register the Template Settings admin page under Celebrities.
+ */
+function hc_register_template_settings_page(): void {
+	add_submenu_page(
+		'edit.php?post_type=celebrity',
+		__( 'Template Settings', 'height-compare' ),
+		__( 'Template Settings', 'height-compare' ),
+		'manage_options',
+		'hc-template-settings',
+		'hc_render_template_settings_page'
+	);
+}
+add_action( 'admin_menu', 'hc_register_template_settings_page' );
+
+/**
+ * Render the global Template Settings admin page.
+ */
+function hc_render_template_settings_page(): void {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	// Handle form save.
+	if (
+		isset( $_POST['hc_tpl_settings_nonce'] )
+		&& wp_verify_nonce( sanitize_key( wp_unslash( $_POST['hc_tpl_settings_nonce'] ) ), 'hc_tpl_settings_save' )
+	) {
+		$new = array(
+			'show_stats'    => isset( $_POST['show_stats'] ) ? 1 : 0,
+			'show_cta'      => isset( $_POST['show_cta'] ) ? 1 : 0,
+			'show_related'  => isset( $_POST['show_related'] ) ? 1 : 0,
+			'show_faq'      => isset( $_POST['show_faq'] ) ? 1 : 0,
+			'lede_template' => sanitize_textarea_field( wp_unslash( $_POST['lede_template'] ?? '' ) ),
+		);
+		update_option( 'hc_celeb_template', $new );
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Template settings saved.', 'height-compare' ) . '</p></div>';
+	}
+
+	$d = hc_get_template_defaults();
+	?>
+	<div class="wrap">
+		<h1><?php esc_html_e( 'Celebrity Page Template Settings', 'height-compare' ); ?></h1>
+		<p style="color:#646970;max-width:600px">
+			<?php esc_html_e( 'These are the global defaults applied to all celebrity pages. Per-celebrity overrides set on each post will take priority.', 'height-compare' ); ?>
+		</p>
+
+		<form method="post">
+			<?php wp_nonce_field( 'hc_tpl_settings_save', 'hc_tpl_settings_nonce' ); ?>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Default Intro Text', 'height-compare' ); ?></th>
+					<td>
+						<textarea name="lede_template" rows="3" style="width:100%;max-width:600px"><?php echo esc_textarea( $d['lede_template'] ); ?></textarea>
+						<p class="description">
+							<?php esc_html_e( 'Leave blank for the auto-generated sentence. Available variables: {name}, {first_name}, {height_cm}, {height_ft}, {height_m}, {country}.', 'height-compare' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Show Sections', 'height-compare' ); ?></th>
+					<td>
+						<?php
+						$hc_tpl_items = array(
+							'show_stats'   => __( 'Stats table (height in cm / ft / m / percentile)', 'height-compare' ),
+							'show_cta'     => __( 'Compare CTA button', 'height-compare' ),
+							'show_related' => __( 'Related Celebrities section', 'height-compare' ),
+							'show_faq'     => __( 'FAQ Section', 'height-compare' ),
+						);
+						foreach ( $hc_tpl_items as $hc_k => $hc_label ) :
+						?>
+						<label style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+							<input type="checkbox" name="<?php echo esc_attr( $hc_k ); ?>" value="1"
+								<?php checked( ! empty( $d[ $hc_k ] ) ); ?>>
+							<?php echo esc_html( $hc_label ); ?>
+						</label>
+						<?php endforeach; ?>
+					</td>
+				</tr>
+			</table>
+
+			<?php submit_button( __( 'Save Template Settings', 'height-compare' ) ); ?>
+		</form>
+	</div>
+	<?php
+}
+
+/* ── Admin list columns ────────────────────────────────────────────────── */
+
+/**
+ * @param array<string, string> $columns Existing columns.
+ * @return array<string, string>
+ */
+function hc_celebrity_columns( array $columns ): array {
+	$columns['hc_height']  = 'Height';
+	$columns['hc_country'] = 'Country';
+	$columns['hc_volume']  = 'Search vol.';
+	return $columns;
+}
+add_filter( 'manage_celebrity_posts_columns', 'hc_celebrity_columns' );
+
+/**
+ * @param string $column  Column key.
+ * @param int    $post_id Post ID.
+ */
+function hc_celebrity_column_value( string $column, int $post_id ): void {
+	if ( 'hc_height' === $column ) {
+		$cm = (float) get_post_meta( $post_id, 'hc_height_cm', true );
+		echo ( $cm > 0 ) ? esc_html( hc_format_height( $cm ) ) : '—';
+	} elseif ( 'hc_country' === $column ) {
+		$c = (string) get_post_meta( $post_id, 'hc_country', true );
+		echo ( '' !== $c ) ? esc_html( $c ) : '—';
+	} elseif ( 'hc_volume' === $column ) {
+		echo esc_html( (string) absint( get_post_meta( $post_id, 'hc_search_volume', true ) ) );
+	}
+}
+add_action( 'manage_celebrity_posts_custom_column', 'hc_celebrity_column_value', 10, 2 );
