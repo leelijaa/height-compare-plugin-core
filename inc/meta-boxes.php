@@ -83,7 +83,33 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 	$country     = (string) get_post_meta( $post->ID, 'hc_country', true );
 	$cat         = (string) get_post_meta( $post->ID, 'hc_category', true );
 	$dob         = (string) get_post_meta( $post->ID, 'hc_dob', true );
-	$age_display = '';
+	$birthplace  = (string) get_post_meta( $post->ID, 'hc_birthplace', true );
+	$weight_kg   = (int) get_post_meta( $post->ID, 'hc_weight_kg', true );
+	$eye_color   = (string) get_post_meta( $post->ID, 'hc_eye_color', true );
+	$hair_color  = (string) get_post_meta( $post->ID, 'hc_hair_color', true );
+	$body_color  = (string) get_post_meta( $post->ID, 'hc_body_color', true );
+	$birth_name  = (string) get_post_meta( $post->ID, 'hc_birth_name', true );
+	$full_name   = (string) get_post_meta( $post->ID, 'hc_full_name', true );
+	$nickname    = (string) get_post_meta( $post->ID, 'hc_nickname', true );
+	$profession      = (string) get_post_meta( $post->ID, 'hc_profession', true );
+	$school          = (string) get_post_meta( $post->ID, 'hc_school', true );
+	$college         = (string) get_post_meta( $post->ID, 'hc_college', true );
+	$father_name     = (string) get_post_meta( $post->ID, 'hc_father_name', true );
+	$mother_name     = (string) get_post_meta( $post->ID, 'hc_mother_name', true );
+	$siblings        = (string) get_post_meta( $post->ID, 'hc_siblings', true );
+	$marital_status  = (string) get_post_meta( $post->ID, 'hc_marital_status', true );
+	$girlfriend_name = (string) get_post_meta( $post->ID, 'hc_girlfriend_name', true );
+	$wife_name       = (string) get_post_meta( $post->ID, 'hc_wife_name', true );
+	$friends_names   = (string) get_post_meta( $post->ID, 'hc_friends_names', true );
+	$religion        = (string) get_post_meta( $post->ID, 'hc_religion', true );
+	$hometown        = (string) get_post_meta( $post->ID, 'hc_hometown', true );
+	$current_address = (string) get_post_meta( $post->ID, 'hc_current_address', true );
+	$children        = (string) get_post_meta( $post->ID, 'hc_children', true );
+	$hobbies         = (string) get_post_meta( $post->ID, 'hc_hobbies', true );
+	$awards          = (string) get_post_meta( $post->ID, 'hc_awards', true );
+	$net_worth       = (string) get_post_meta( $post->ID, 'hc_net_worth', true );
+	$monthly_earning = (string) get_post_meta( $post->ID, 'hc_monthly_earning', true );
+	$age_display     = '';
 	if ( '' !== $dob ) {
 		$birth = DateTimeImmutable::createFromFormat( 'Y-m-d', $dob );
 		if ( $birth instanceof DateTimeImmutable ) {
@@ -170,6 +196,97 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 				</div>
 
 				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_birthplace">
+						<?php esc_html_e( 'Birthplace', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_birthplace" id="hc_birthplace"
+						value="<?php echo esc_attr( $birthplace ); ?>"
+						placeholder="<?php esc_attr_e( 'Funchal, Portugal', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_weight_kg">
+						<?php esc_html_e( 'Weight (kg)', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="number"
+						name="hc_weight_kg" id="hc_weight_kg"
+						value="<?php echo esc_attr( $weight_kg > 0 ? $weight_kg : '' ); ?>"
+						min="1" max="500"
+						placeholder="83">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_eye_color">
+						<?php esc_html_e( 'Eye Colour', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_eye_color" id="hc_eye_color"
+						value="<?php echo esc_attr( $eye_color ); ?>"
+						placeholder="<?php esc_attr_e( 'Brown', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_hair_color">
+						<?php esc_html_e( 'Hair Color', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_hair_color" id="hc_hair_color"
+						value="<?php echo esc_attr( $hair_color ); ?>"
+						placeholder="<?php esc_attr_e( 'Black', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_body_color">
+						<?php esc_html_e( 'Body Color', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_body_color" id="hc_body_color"
+						value="<?php echo esc_attr( $body_color ); ?>"
+						placeholder="<?php esc_attr_e( 'Light Brown', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_birth_name">
+						<?php esc_html_e( 'Birth Name', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_birth_name" id="hc_birth_name"
+						value="<?php echo esc_attr( $birth_name ); ?>"
+						placeholder="<?php esc_attr_e( 'Cristiano Ronaldo dos Santos Aveiro', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_full_name">
+						<?php esc_html_e( 'Full Name', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_full_name" id="hc_full_name"
+						value="<?php echo esc_attr( $full_name ); ?>"
+						placeholder="<?php esc_attr_e( 'Cristiano Ronaldo', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_nickname">
+						<?php esc_html_e( 'Nickname', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_nickname" id="hc_nickname"
+						value="<?php echo esc_attr( $nickname ); ?>"
+						placeholder="<?php esc_attr_e( 'CR7', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_profession">
+						<?php esc_html_e( 'Profession', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_profession" id="hc_profession"
+						value="<?php echo esc_attr( $profession ); ?>"
+						placeholder="<?php esc_attr_e( 'Footballer', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
 					<label class="hc-cel-tpl__label" for="hc_aliases">
 						<?php esc_html_e( 'Aliases', 'height-compare' ); ?>
 						<span class="hc-cel-tpl__hint">comma-separated</span>
@@ -178,6 +295,196 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						name="hc_aliases" id="hc_aliases"
 						value="<?php echo esc_attr( $aliases ); ?>"
 						placeholder="<?php esc_attr_e( 'The Rock, Dwayne Johnson', 'height-compare' ); ?>">
+				</div>
+
+			</div>
+		</div>
+
+		<!-- ── Section: Family & Background ──────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">👨‍👩‍👧‍👦</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Family & Background', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_school"><?php esc_html_e( 'School', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_school" id="hc_school"
+						value="<?php echo esc_attr( $school ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_college"><?php esc_html_e( 'College', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_college" id="hc_college"
+						value="<?php echo esc_attr( $college ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_father_name"><?php esc_html_e( "Father's Name", 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_father_name" id="hc_father_name"
+						value="<?php echo esc_attr( $father_name ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_mother_name"><?php esc_html_e( "Mother's Name", 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_mother_name" id="hc_mother_name"
+						value="<?php echo esc_attr( $mother_name ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_siblings"><?php esc_html_e( 'Siblings', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_siblings" id="hc_siblings"
+						value="<?php echo esc_attr( $siblings ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_marital_status"><?php esc_html_e( 'Marital Status', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_marital_status" id="hc_marital_status"
+						value="<?php echo esc_attr( $marital_status ); ?>"
+						placeholder="<?php esc_attr_e( 'Married', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_girlfriend_name"><?php esc_html_e( 'Girlfriend Name', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_girlfriend_name" id="hc_girlfriend_name"
+						value="<?php echo esc_attr( $girlfriend_name ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_wife_name"><?php esc_html_e( 'Wife Name', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_wife_name" id="hc_wife_name"
+						value="<?php echo esc_attr( $wife_name ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_friends_names"><?php esc_html_e( 'Friends Name', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_friends_names" id="hc_friends_names"
+						value="<?php echo esc_attr( $friends_names ); ?>"
+						placeholder="<?php esc_attr_e( 'Jose Semedo, Ricky Regufe', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_religion"><?php esc_html_e( 'Religion', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_religion" id="hc_religion"
+						value="<?php echo esc_attr( $religion ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_hometown"><?php esc_html_e( 'Hometown', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_hometown" id="hc_hometown"
+						value="<?php echo esc_attr( $hometown ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_current_address"><?php esc_html_e( 'Current Address', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_current_address" id="hc_current_address"
+						value="<?php echo esc_attr( $current_address ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_children"><?php esc_html_e( 'Children', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_children" id="hc_children"
+						value="<?php echo esc_attr( $children ); ?>"
+						placeholder="<?php esc_attr_e( 'Cristiano Jr., Georgina Rodriguez', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_hobbies"><?php esc_html_e( 'Hobbies', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_hobbies" id="hc_hobbies"
+						value="<?php echo esc_attr( $hobbies ); ?>"
+						placeholder="<?php esc_attr_e( 'Workout, Music', 'height-compare' ); ?>">
+				</div>
+
+			</div>
+		</div>
+
+		<!-- ── Section: Career & Financials ──────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">💰</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Career & Financials', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label" for="hc_awards"><?php esc_html_e( 'Awards', 'height-compare' ); ?></label>
+					<textarea class="hc-cel-tpl__input" name="hc_awards" id="hc_awards" rows="3"
+						placeholder="<?php esc_attr_e( 'FIFA Ballon d\'Or, European Golden Shoe', 'height-compare' ); ?>"><?php echo esc_textarea( $awards ); ?></textarea>
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_net_worth"><?php esc_html_e( 'Net Worth', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_net_worth" id="hc_net_worth"
+						value="<?php echo esc_attr( $net_worth ); ?>"
+						placeholder="<?php esc_attr_e( '$1.1 Billion', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_monthly_earning"><?php esc_html_e( 'Monthly Earning', 'height-compare' ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="hc_monthly_earning" id="hc_monthly_earning"
+						value="<?php echo esc_attr( $monthly_earning ); ?>"
+						placeholder="<?php esc_attr_e( '$10 Million', 'height-compare' ); ?>">
+				</div>
+
+			</div>
+		</div>
+
+		<!-- ── Section: Body Measurements ─────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">📏</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Body Measurements', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<?php
+				$bm_fields = array(
+					'hc_wingspan_cm'       => 'Wingspan (cm)',
+					'hc_leg_length_cm'     => 'Leg Length / Inseam (cm)',
+					'hc_torso_length_cm'   => 'Torso Length (cm)',
+					'hc_shoulder_width_cm' => 'Shoulder Width (cm)',
+					'hc_hip_width_cm'      => 'Hip Width (cm)',
+					'hc_hand_size_cm'      => 'Hand Size (cm)',
+					'hc_foot_size_cm'      => 'Foot Size (cm)',
+				);
+				foreach ( $bm_fields as $bm_key => $bm_label ) :
+					$bm_val = (float) get_post_meta( $post->ID, $bm_key, true );
+				?>
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="<?php echo esc_attr( $bm_key ); ?>">
+						<?php echo esc_html( $bm_label ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="number" step="0.1" min="0" max="500"
+						name="<?php echo esc_attr( $bm_key ); ?>"
+						id="<?php echo esc_attr( $bm_key ); ?>"
+						value="<?php echo esc_attr( $bm_val > 0 ? $bm_val : '' ); ?>">
+				</div>
+				<?php endforeach; ?>
+
+				<?php
+				$bm_src_url   = (string) get_post_meta( $post->ID, 'hc_body_source_url', true );
+				$bm_src_label = (string) get_post_meta( $post->ID, 'hc_body_source_label', true );
+				?>
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_body_source_label">
+						<?php esc_html_e( 'Source Label', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint">shown for height &amp; weight rows</span>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_body_source_label" id="hc_body_source_label"
+						value="<?php echo esc_attr( $bm_src_label ); ?>"
+						placeholder="Club profile (widely listed)">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_body_source_url">
+						<?php esc_html_e( 'Source URL', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="url"
+						name="hc_body_source_url" id="hc_body_source_url"
+						value="<?php echo esc_attr( $bm_src_url ); ?>"
+						placeholder="https://…">
 				</div>
 
 			</div>
@@ -842,6 +1149,48 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 		}
 		// Height group is assigned from the already-saved hc_height_cm.
 		hc_assign_height_group( $post_id );
+
+		// String meta fields — personal, family, career.
+		foreach ( array(
+			'hc_birthplace', 'hc_eye_color', 'hc_hair_color', 'hc_body_color',
+			'hc_birth_name', 'hc_full_name', 'hc_nickname', 'hc_profession',
+			'hc_school', 'hc_college', 'hc_father_name', 'hc_mother_name',
+			'hc_siblings', 'hc_marital_status', 'hc_girlfriend_name', 'hc_wife_name',
+			'hc_friends_names', 'hc_religion', 'hc_hometown', 'hc_current_address',
+			'hc_children', 'hc_hobbies', 'hc_awards', 'hc_net_worth', 'hc_monthly_earning',
+		) as $str_key ) {
+			$val = isset( $_POST[ $str_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $str_key ] ) ) : '';
+			if ( '' === $val ) {
+				delete_post_meta( $post_id, $str_key );
+			} else {
+				update_post_meta( $post_id, $str_key, $val );
+			}
+		}
+		// Weight.
+		$wt = isset( $_POST['hc_weight_kg'] ) ? absint( $_POST['hc_weight_kg'] ) : 0;
+		if ( $wt > 0 ) {
+			update_post_meta( $post_id, 'hc_weight_kg', $wt );
+		} else {
+			delete_post_meta( $post_id, 'hc_weight_kg' );
+		}
+
+		// Body measurements (numeric cm fields).
+		$bm_keys = array( 'hc_wingspan_cm', 'hc_leg_length_cm', 'hc_torso_length_cm', 'hc_shoulder_width_cm', 'hc_hip_width_cm', 'hc_hand_size_cm', 'hc_foot_size_cm' );
+		foreach ( $bm_keys as $bm_key ) {
+			$bm_val = isset( $_POST[ $bm_key ] ) ? (float) $_POST[ $bm_key ] : 0.0;
+			if ( $bm_val > 0 ) {
+				update_post_meta( $post_id, $bm_key, round( $bm_val, 1 ) );
+			} else {
+				delete_post_meta( $post_id, $bm_key );
+			}
+		}
+		// Body source.
+		foreach ( array( 'hc_body_source_label' ) as $str_key ) {
+			$val = isset( $_POST[ $str_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $str_key ] ) ) : '';
+			$val === '' ? delete_post_meta( $post_id, $str_key ) : update_post_meta( $post_id, $str_key, $val );
+		}
+		$bm_src_url = isset( $_POST['hc_body_source_url'] ) ? esc_url_raw( wp_unslash( $_POST['hc_body_source_url'] ) ) : '';
+		$bm_src_url === '' ? delete_post_meta( $post_id, 'hc_body_source_url' ) : update_post_meta( $post_id, 'hc_body_source_url', $bm_src_url );
 	}
 
 	// Save custom FAQs for celebrity posts.

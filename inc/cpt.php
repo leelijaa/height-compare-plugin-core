@@ -57,6 +57,181 @@ function hc_meta_fields(): array {
 				'sanitize' => 'absint',
 				'label'    => 'Monthly search volume (versus pages index at ≥ 100)',
 			),
+			'hc_birthplace'    => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Birthplace',
+			),
+			'hc_weight_kg'     => array(
+				'type'     => 'integer',
+				'sanitize' => 'absint',
+				'label'    => 'Weight (kg)',
+			),
+			'hc_eye_color'         => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Eye Colour',
+			),
+			'hc_hair_color'        => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Hair Color',
+			),
+			'hc_body_color'        => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Body Color',
+			),
+			'hc_birth_name'        => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Birth Name',
+			),
+			'hc_full_name'         => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Full Name',
+			),
+			'hc_nickname'          => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Nickname',
+			),
+			'hc_profession'        => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Profession',
+			),
+			'hc_school'            => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'School',
+			),
+			'hc_college'           => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'College',
+			),
+			'hc_father_name'       => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => "Father's Name",
+			),
+			'hc_mother_name'       => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => "Mother's Name",
+			),
+			'hc_siblings'          => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Siblings',
+			),
+			'hc_marital_status'    => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Marital Status',
+			),
+			'hc_girlfriend_name'   => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Girlfriend Name',
+			),
+			'hc_wife_name'         => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Wife Name',
+			),
+			'hc_friends_names'     => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Friends Name',
+			),
+			'hc_religion'          => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Religion',
+			),
+			'hc_hometown'          => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Hometown',
+			),
+			'hc_current_address'   => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Current Address',
+			),
+			'hc_children'          => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Children',
+			),
+			'hc_hobbies'           => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Hobbies',
+			),
+			'hc_awards'            => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Awards',
+			),
+			'hc_net_worth'         => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Net Worth',
+			),
+			'hc_monthly_earning'   => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Monthly Earning',
+			),
+			'hc_wingspan_cm'       => array(
+				'type'     => 'number',
+				'sanitize' => 'hc_sanitize_height',
+				'label'    => 'Wingspan (cm)',
+			),
+			'hc_leg_length_cm'     => array(
+				'type'     => 'number',
+				'sanitize' => 'hc_sanitize_height',
+				'label'    => 'Leg Length / Inseam (cm)',
+			),
+			'hc_torso_length_cm'   => array(
+				'type'     => 'number',
+				'sanitize' => 'hc_sanitize_height',
+				'label'    => 'Torso Length (cm)',
+			),
+			'hc_shoulder_width_cm' => array(
+				'type'     => 'number',
+				'sanitize' => 'hc_sanitize_height',
+				'label'    => 'Shoulder Width (cm)',
+			),
+			'hc_hip_width_cm'      => array(
+				'type'     => 'number',
+				'sanitize' => 'hc_sanitize_height',
+				'label'    => 'Hip Width (cm)',
+			),
+			'hc_hand_size_cm'      => array(
+				'type'     => 'number',
+				'sanitize' => 'hc_sanitize_height',
+				'label'    => 'Hand Size (cm)',
+			),
+			'hc_foot_size_cm'      => array(
+				'type'     => 'number',
+				'sanitize' => 'hc_sanitize_height',
+				'label'    => 'Foot Size (cm)',
+			),
+			'hc_body_source_url'   => array(
+				'type'     => 'string',
+				'sanitize' => 'esc_url_raw',
+				'label'    => 'Body Measurements Source URL',
+			),
+			'hc_body_source_label' => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Body Measurements Source Label',
+			),
 		),
 		'height_reference' => array(
 			'hc_height_cm' => array(
