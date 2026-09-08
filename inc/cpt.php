@@ -82,6 +82,26 @@ function hc_meta_fields(): array {
 				'sanitize' => 'sanitize_text_field',
 				'label'    => 'Body Color',
 			),
+			'hc_body_type'              => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Body Type',
+			),
+			'hc_physical_attributes_para' => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_textarea_field',
+				'label'    => 'Physical Attributes Paragraph',
+			),
+			'hc_biography_para'         => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_textarea_field',
+				'label'    => 'Biography Paragraph',
+			),
+			'hc_hero_bio'               => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_textarea_field',
+				'label'    => 'Hero Bio (shown below height lede)',
+			),
 			'hc_birth_name'        => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_text_field',
@@ -187,6 +207,16 @@ function hc_meta_fields(): array {
 				'sanitize' => 'sanitize_text_field',
 				'label'    => 'Monthly Earning',
 			),
+			'hc_twitter_handle'       => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Handle' ),
+			'hc_twitter_followers'    => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Followers' ),
+			'hc_instagram_handle'     => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Instagram Handle' ),
+			'hc_instagram_followers'  => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Instagram Followers' ),
+			'hc_youtube_channel'      => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'YouTube Channel Name' ),
+			'hc_youtube_followers'    => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'YouTube Subscribers' ),
+			'hc_facebook_handle'      => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Facebook Name/Handle' ),
+			'hc_facebook_followers'   => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Facebook Followers' ),
+			'hc_tiktok_handle'        => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'TikTok Handle' ),
+			'hc_tiktok_followers'     => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'TikTok Followers' ),
 			'hc_wingspan_cm'       => array(
 				'type'     => 'number',
 				'sanitize' => 'hc_sanitize_height',

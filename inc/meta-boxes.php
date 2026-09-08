@@ -88,6 +88,10 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 	$eye_color   = (string) get_post_meta( $post->ID, 'hc_eye_color', true );
 	$hair_color  = (string) get_post_meta( $post->ID, 'hc_hair_color', true );
 	$body_color  = (string) get_post_meta( $post->ID, 'hc_body_color', true );
+	$body_type              = (string) get_post_meta( $post->ID, 'hc_body_type', true );
+	$physical_attrs_para    = (string) get_post_meta( $post->ID, 'hc_physical_attributes_para', true );
+	$biography_para         = (string) get_post_meta( $post->ID, 'hc_biography_para', true );
+	$hero_bio               = (string) get_post_meta( $post->ID, 'hc_hero_bio', true );
 	$birth_name  = (string) get_post_meta( $post->ID, 'hc_birth_name', true );
 	$full_name   = (string) get_post_meta( $post->ID, 'hc_full_name', true );
 	$nickname    = (string) get_post_meta( $post->ID, 'hc_nickname', true );
@@ -244,6 +248,40 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						name="hc_body_color" id="hc_body_color"
 						value="<?php echo esc_attr( $body_color ); ?>"
 						placeholder="<?php esc_attr_e( 'Light Brown', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_body_type">
+						<?php esc_html_e( 'Body Type', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_body_type" id="hc_body_type"
+						value="<?php echo esc_attr( $body_type ); ?>"
+						placeholder="<?php esc_attr_e( 'Athletic / Large Frame', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_physical_attributes_para">
+						<?php esc_html_e( 'Physical Attributes — Paragraph', 'height-compare' ); ?>
+					</label>
+					<textarea class="hc-cel-tpl__input" name="hc_physical_attributes_para" id="hc_physical_attributes_para" rows="4"
+						placeholder="<?php esc_attr_e( 'Optional paragraph displayed under the Physical Attributes section.', 'height-compare' ); ?>"><?php echo esc_textarea( $physical_attrs_para ); ?></textarea>
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_hero_bio">
+						<?php esc_html_e( 'Hero Bio (below height lede)', 'height-compare' ); ?>
+					</label>
+					<textarea class="hc-cel-tpl__input" name="hc_hero_bio" id="hc_hero_bio" rows="4"
+						placeholder="<?php esc_attr_e( 'Paragraph shown in the hero section, below the auto-generated height sentence.', 'height-compare' ); ?>"><?php echo esc_textarea( $hero_bio ); ?></textarea>
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_biography_para">
+						<?php esc_html_e( 'Biography — Paragraph', 'height-compare' ); ?>
+					</label>
+					<textarea class="hc-cel-tpl__input" name="hc_biography_para" id="hc_biography_para" rows="4"
+						placeholder="<?php esc_attr_e( 'Optional paragraph displayed under the Biography & Personal Info section.', 'height-compare' ); ?>"><?php echo esc_textarea( $biography_para ); ?></textarea>
 				</div>
 
 				<div class="hc-cel-tpl__field">
@@ -426,6 +464,41 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						value="<?php echo esc_attr( $monthly_earning ); ?>"
 						placeholder="<?php esc_attr_e( '$10 Million', 'height-compare' ); ?>">
 				</div>
+
+			</div>
+		</div>
+
+		<!-- ── Section: Social Media ──────────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">📱</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Social Media', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<?php
+				$sm_fields = array(
+					'hc_twitter_handle'      => array( 'label' => 'Twitter/X Handle',      'ph' => '@elonmusk' ),
+					'hc_twitter_followers'   => array( 'label' => 'Twitter/X Followers',    'ph' => '180M+' ),
+					'hc_instagram_handle'    => array( 'label' => 'Instagram Handle',       'ph' => '@elonmusk' ),
+					'hc_instagram_followers' => array( 'label' => 'Instagram Followers',    'ph' => '2.5M+' ),
+					'hc_youtube_channel'     => array( 'label' => 'YouTube Channel',        'ph' => 'SpaceX' ),
+					'hc_youtube_followers'   => array( 'label' => 'YouTube Subscribers',    'ph' => '12M+' ),
+					'hc_facebook_handle'     => array( 'label' => 'Facebook Name/Handle',   'ph' => 'Elon Musk' ),
+					'hc_facebook_followers'  => array( 'label' => 'Facebook Followers',     'ph' => '3.5M+' ),
+					'hc_tiktok_handle'       => array( 'label' => 'TikTok Handle',          'ph' => '@elonmusk' ),
+					'hc_tiktok_followers'    => array( 'label' => 'TikTok Followers',       'ph' => '5M+' ),
+				);
+				foreach ( $sm_fields as $sm_key => $sm_cfg ) :
+					$sm_val = (string) get_post_meta( $post->ID, $sm_key, true );
+				?>
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="<?php echo esc_attr( $sm_key ); ?>"><?php echo esc_html( $sm_cfg['label'] ); ?></label>
+					<input class="hc-cel-tpl__input" type="text" name="<?php echo esc_attr( $sm_key ); ?>" id="<?php echo esc_attr( $sm_key ); ?>"
+						value="<?php echo esc_attr( $sm_val ); ?>"
+						placeholder="<?php echo esc_attr( $sm_cfg['ph'] ); ?>">
+				</div>
+				<?php endforeach; ?>
 
 			</div>
 		</div>
@@ -1152,7 +1225,8 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 
 		// String meta fields — personal, family, career.
 		foreach ( array(
-			'hc_birthplace', 'hc_eye_color', 'hc_hair_color', 'hc_body_color',
+			'hc_birthplace', 'hc_eye_color', 'hc_hair_color', 'hc_body_color', 'hc_body_type',
+			'hc_physical_attributes_para', 'hc_biography_para', 'hc_hero_bio',
 			'hc_birth_name', 'hc_full_name', 'hc_nickname', 'hc_profession',
 			'hc_school', 'hc_college', 'hc_father_name', 'hc_mother_name',
 			'hc_siblings', 'hc_marital_status', 'hc_girlfriend_name', 'hc_wife_name',
