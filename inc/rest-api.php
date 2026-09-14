@@ -186,7 +186,7 @@ function hc_all_presets(): array {
 		array(
 			'post_type'      => array( 'celebrity', 'height_reference' ),
 			'post_status'    => 'publish',
-			'posts_per_page' => 2000,
+			'posts_per_page' => -1,
 			'orderby'        => 'title',
 			'order'          => 'ASC',
 		)
