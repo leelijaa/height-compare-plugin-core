@@ -143,7 +143,7 @@ function hc_sitemap_posts( string $post_type ): array {
 		array(
 			'post_type'      => $post_type,
 			'post_status'    => 'publish',
-			'posts_per_page' => 5000,
+			'posts_per_page' => -1,
 			'orderby'        => 'modified',
 			'order'          => 'DESC',
 		)
