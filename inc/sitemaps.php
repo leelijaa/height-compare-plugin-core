@@ -35,7 +35,7 @@ add_action( 'template_redirect', 'hc_render_sitemap_early', 1 );
 /**
  * Render a sitemap and exit.
  *
- * @param string $name index|pages|celebrities|countries|blog|versus.
+ * @param string $name index|pages|celebrities|countries|blog|versus|celebrity-groups|celebrity-cats.
  */
 function hc_render_sitemap( string $name ): void {
 	header( 'Content-Type: application/xml; charset=UTF-8' );
@@ -54,7 +54,7 @@ function hc_render_sitemap( string $name ): void {
  * Sitemap index listing the child sitemaps.
  */
 function hc_render_sitemap_index(): void {
-	$children = array( 'pages', 'celebrities', 'countries', 'blog', 'versus' );
+	$children = array( 'pages', 'celebrities', 'countries', 'blog', 'versus', 'celebrity-groups', 'celebrity-cats' );
 	echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 	foreach ( $children as $child ) {
 		printf(
@@ -94,14 +94,12 @@ function hc_sitemap_urls( string $name ): array {
 	switch ( $name ) {
 		case 'pages':
 			$urls[] = array( 'loc' => home_url( '/' ), 'lastmod' => '' );
-			foreach ( array( 'height-chart', 'height-converter' ) as $slug ) {
-				$page = get_page_by_path( $slug );
-				if ( $page instanceof WP_Post ) {
-					$urls[] = array(
-						'loc'     => (string) get_permalink( $page ),
-						'lastmod' => get_post_modified_time( 'c', true, $page ) ?: '',
-					);
-				}
+			$hc_converter = get_page_by_path( 'height-converter' );
+			if ( $hc_converter instanceof WP_Post ) {
+				$urls[] = array(
+					'loc'     => (string) get_permalink( $hc_converter ),
+					'lastmod' => get_post_modified_time( 'c', true, $hc_converter ) ?: '',
+				);
 			}
 			$urls[] = array( 'loc' => (string) get_post_type_archive_link( 'celebrity' ), 'lastmod' => '' );
 			break;
@@ -120,6 +118,14 @@ function hc_sitemap_urls( string $name ): array {
 
 		case 'versus':
 			$urls = hc_sitemap_versus();
+			break;
+
+		case 'celebrity-groups':
+			$urls = hc_sitemap_terms( 'celebrity_group' );
+			break;
+
+		case 'celebrity-cats':
+			$urls = hc_sitemap_terms( 'celebrity_cat' );
 			break;
 	}
 
@@ -147,6 +153,36 @@ function hc_sitemap_posts( string $post_type ): array {
 		$urls[] = array(
 			'loc'     => (string) get_permalink( $post ),
 			'lastmod' => get_post_modified_time( 'c', true, $post ) ?: '',
+		);
+	}
+	return $urls;
+}
+
+/**
+ * URLs for a taxonomy's published terms.
+ *
+ * @param string $taxonomy Taxonomy name.
+ * @return array<int, array{loc: string, lastmod: string}>
+ */
+function hc_sitemap_terms( string $taxonomy ): array {
+	$terms = get_terms(
+		array(
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => true,
+			'number'     => 0,
+		)
+	);
+	if ( is_wp_error( $terms ) || ! is_array( $terms ) ) {
+		return array();
+	}
+	$urls = array();
+	foreach ( $terms as $term ) {
+		if ( ! ( $term instanceof WP_Term ) ) {
+			continue;
+		}
+		$urls[] = array(
+			'loc'     => (string) get_term_link( $term ),
+			'lastmod' => '',
 		);
 	}
 	return $urls;
