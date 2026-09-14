@@ -622,7 +622,7 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 			<div style="margin-bottom:8px">
 				<strong><?php esc_html_e( 'Custom FAQs', 'height-compare' ); ?></strong>
 				<span class="hc-cel-tpl__hint" style="margin-left:6px">
-					<?php esc_html_e( 'Added above the auto-generated FAQs on the page', 'height-compare' ); ?>
+					<?php esc_html_e( 'Displayed on the celebrity page', 'height-compare' ); ?>
 				</span>
 			</div>
 
@@ -658,113 +658,9 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 				<?php esc_html_e( '+ Add FAQ', 'height-compare' ); ?>
 			</button>
 
-			<!-- Auto-generated FAQs preview (read-only) -->
-			<?php if ( $cm > 0 ) : ?>
-			<div class="hc-cel-tpl__autofaq-preview" style="margin-top:20px;padding:14px 16px;background:#f6f7f7;border-radius:4px;border:1px solid #dcdcde">
-				<p style="margin:0 0 10px;font-size:13px;color:#50575e">
-					<strong><?php esc_html_e( 'Auto-generated FAQs', 'height-compare' ); ?></strong>
-					— <?php esc_html_e( 'These appear on the page automatically. To customise them, add Custom FAQs above — they display first and you can override any of these.', 'height-compare' ); ?>
-				</p>
-				<?php
-				$hc_auto_faqs = hc_celebrity_faqs( $post );
-				foreach ( $hc_auto_faqs as $hc_q => $hc_a ) :
-				?>
-				<details style="margin-bottom:6px;font-size:13px">
-					<summary style="cursor:pointer;color:#1d2327;font-weight:500;padding:4px 0"><?php echo esc_html( $hc_q ); ?></summary>
-					<p style="margin:4px 0 0 12px;color:#50575e"><?php echo esc_html( $hc_a ); ?></p>
-				</details>
-				<?php endforeach; ?>
-			</div>
-			<?php endif; ?>
 
 		</div>
 
-		<!-- ── Section: Page Template ───────────────────────────────────── -->
-		<div class="hc-cel-tpl__section">
-			<div class="hc-cel-tpl__section-head">
-				<span class="hc-cel-tpl__icon">🗂️</span>
-				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Page Template', 'height-compare' ); ?></h2>
-			</div>
-			<p style="margin:0 0 14px;font-size:13px;color:#646970">
-				<?php esc_html_e( 'These settings apply to this celebrity only and override the global template defaults.', 'height-compare' ); ?>
-				<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=celebrity&page=hc-template-settings' ) ); ?>" style="margin-left:4px">
-					<?php esc_html_e( 'Edit global defaults →', 'height-compare' ); ?>
-				</a>
-			</p>
-
-			<!-- Custom lede text -->
-			<div class="hc-cel-tpl__field hc-cel-tpl__field--full" style="margin-bottom:20px">
-				<label class="hc-cel-tpl__label" for="hc_lede_text">
-					<?php esc_html_e( 'Custom Intro Text', 'height-compare' ); ?>
-					<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Leave blank to use the auto-generated sentence.', 'height-compare' ); ?></span>
-				</label>
-				<textarea class="hc-cel-tpl__input" id="hc_lede_text" name="hc_lede_text"
-					rows="3" style="resize:vertical"><?php echo esc_textarea( $lede_text ); ?></textarea>
-			</div>
-
-			<!-- Section visibility toggles -->
-			<div style="margin-bottom:6px"><strong style="font-size:13px"><?php esc_html_e( 'Show / Hide Sections', 'height-compare' ); ?></strong></div>
-			<p style="margin:0 0 12px;font-size:12px;color:#646970">
-				<?php esc_html_e( '"Default" uses the global template setting. Tick or untick to override for this page only.', 'height-compare' ); ?>
-			</p>
-			<table style="border-collapse:collapse;width:100%;font-size:13px">
-				<thead>
-					<tr>
-						<th style="text-align:left;padding:4px 8px 8px 0;color:#646970;font-weight:600"><?php esc_html_e( 'Section', 'height-compare' ); ?></th>
-						<th style="text-align:center;padding:4px 8px 8px;color:#646970;font-weight:600"><?php esc_html_e( 'Default', 'height-compare' ); ?></th>
-						<th style="text-align:center;padding:4px 8px 8px;color:#646970;font-weight:600"><?php esc_html_e( 'Show', 'height-compare' ); ?></th>
-						<th style="text-align:center;padding:4px 8px 8px;color:#646970;font-weight:600"><?php esc_html_e( 'Hide', 'height-compare' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php
-				$hc_tpl_rows = array(
-					array(
-						'key'     => 'hc_tpl_show_stats',
-						'label'   => __( 'Stats table (height in cm/ft/m)', 'height-compare' ),
-						'current' => $tpl_show_stats,
-						'global'  => ! empty( $global_tpl['show_stats'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
-					),
-					array(
-						'key'     => 'hc_tpl_show_cta',
-						'label'   => __( 'Compare CTA', 'height-compare' ),
-						'current' => $tpl_show_cta,
-						'global'  => ! empty( $global_tpl['show_cta'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
-					),
-					array(
-						'key'     => 'hc_tpl_show_related',
-						'label'   => __( 'Related Celebrities', 'height-compare' ),
-						'current' => $tpl_show_related,
-						'global'  => ! empty( $global_tpl['show_related'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
-					),
-					array(
-						'key'     => 'hc_tpl_show_faq',
-						'label'   => __( 'FAQ Section', 'height-compare' ),
-						'current' => $tpl_show_faq,
-						'global'  => ! empty( $global_tpl['show_faq'] ) ? __( 'Show', 'height-compare' ) : __( 'Hide', 'height-compare' ),
-					),
-				);
-				foreach ( $hc_tpl_rows as $hc_row ) :
-				?>
-				<tr style="border-top:1px solid #f0f0f1">
-					<td style="padding:8px 8px 8px 0"><?php echo esc_html( $hc_row['label'] ); ?></td>
-					<td style="text-align:center;color:#646970;padding:8px"><?php echo esc_html( $hc_row['global'] ); ?></td>
-					<td style="text-align:center;padding:8px">
-						<input type="radio" name="<?php echo esc_attr( $hc_row['key'] ); ?>" value="1"
-							<?php checked( '1', $hc_row['current'] ); ?>>
-					</td>
-					<td style="text-align:center;padding:8px">
-						<input type="radio" name="<?php echo esc_attr( $hc_row['key'] ); ?>" value="0"
-							<?php checked( '0', $hc_row['current'] ); ?>>
-					</td>
-				</tr>
-				<?php endforeach; ?>
-				</tbody>
-			</table>
-			<p style="margin:8px 0 0;font-size:12px;color:#646970">
-				<?php esc_html_e( 'To reset a row to the global default, deselect both radio buttons (click the selected one again to deselect, or leave both blank).', 'height-compare' ); ?>
-			</p>
-		</div>
 
 	</div><!-- /hc-cel-tpl -->
 	<?php
@@ -1022,9 +918,10 @@ function hc_render_meta_box( WP_Post $post ): void {
  * @param string $value Current cm value.
  */
 function hc_render_height_input( string $key, string $value ): void {
-	$cm = ( '' !== $value ) ? (float) $value : 0.0;
-	$ft = ( $cm > 0 ) ? (int) floor( $cm / 30.48 ) : 0;
-	$in = ( $cm > 0 ) ? round( fmod( $cm, 30.48 ) / 2.54, 1 ) : 0.0;
+	$cm  = ( '' !== $value ) ? (float) $value : 0.0;
+	$ft  = ( $cm > 0 ) ? (int) floor( $cm / 30.48 ) : 0;
+	$in  = ( $cm > 0 ) ? round( fmod( $cm, 30.48 ) / 2.54, 1 ) : 0.0;
+	$yd  = ( $cm > 0 ) ? round( $cm / 91.44, 2 ) : 0.0;
 	?>
 	<span class="hc-height-pair" data-key="<?php echo esc_attr( $key ); ?>">
 		<input type="number" step="0.1" min="0" max="30000" id="<?php echo esc_attr( $key ); ?>"
@@ -1033,6 +930,7 @@ function hc_render_height_input( string $key, string $value ): void {
 		&nbsp;=&nbsp;
 		<input type="number" step="1" min="0" class="small-text hc-ft" value="<?php echo esc_attr( $cm > 0 ? (string) $ft : '' ); ?>" aria-label="feet"> ft
 		<input type="number" step="0.1" min="0" max="11.9" class="small-text hc-in" value="<?php echo esc_attr( $cm > 0 ? (string) $in : '' ); ?>" aria-label="inches"> in
+		&nbsp;&nbsp;<span class="hc-yd" style="font-weight:500"><?php echo $cm > 0 ? esc_html( (string) $yd ) : ''; ?></span> yd
 	</span>
 	<?php
 }
@@ -1054,11 +952,13 @@ function hc_celebrity_admin_js(): void {
 		var cm   = pair.querySelector('.hc-cm');
 		var ft   = pair.querySelector('.hc-ft');
 		var inch = pair.querySelector('.hc-in');
+		var yd   = pair.querySelector('.hc-yd');
 		function fromCm() {
 			var v = parseFloat(cm.value);
-			if (!isFinite(v) || v <= 0) { ft.value = ''; inch.value = ''; return; }
+			if (!isFinite(v) || v <= 0) { ft.value = ''; inch.value = ''; if (yd) yd.textContent = ''; return; }
 			ft.value   = Math.floor(v / 30.48);
 			inch.value = Math.round((v % 30.48) / 2.54 * 10) / 10;
+			if (yd) yd.textContent = Math.round(v / 91.44 * 100) / 100;
 		}
 		function fromFt() {
 			var f = parseFloat(ft.value) || 0;
@@ -1333,93 +1233,6 @@ function hc_tpl_section_visible( int $post_id, string $section, array $defaults 
 	return ! empty( $defaults[ 'show_' . $section ] );
 }
 
-/**
- * Register the Template Settings admin page under Celebrities.
- */
-function hc_register_template_settings_page(): void {
-	add_submenu_page(
-		'edit.php?post_type=celebrity',
-		__( 'Template Settings', 'height-compare' ),
-		__( 'Template Settings', 'height-compare' ),
-		'manage_options',
-		'hc-template-settings',
-		'hc_render_template_settings_page'
-	);
-}
-add_action( 'admin_menu', 'hc_register_template_settings_page' );
-
-/**
- * Render the global Template Settings admin page.
- */
-function hc_render_template_settings_page(): void {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
-
-	// Handle form save.
-	if (
-		isset( $_POST['hc_tpl_settings_nonce'] )
-		&& wp_verify_nonce( sanitize_key( wp_unslash( $_POST['hc_tpl_settings_nonce'] ) ), 'hc_tpl_settings_save' )
-	) {
-		$new = array(
-			'show_stats'    => isset( $_POST['show_stats'] ) ? 1 : 0,
-			'show_cta'      => isset( $_POST['show_cta'] ) ? 1 : 0,
-			'show_related'  => isset( $_POST['show_related'] ) ? 1 : 0,
-			'show_faq'      => isset( $_POST['show_faq'] ) ? 1 : 0,
-			'lede_template' => sanitize_textarea_field( wp_unslash( $_POST['lede_template'] ?? '' ) ),
-		);
-		update_option( 'hc_celeb_template', $new );
-		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Template settings saved.', 'height-compare' ) . '</p></div>';
-	}
-
-	$d = hc_get_template_defaults();
-	?>
-	<div class="wrap">
-		<h1><?php esc_html_e( 'Celebrity Page Template Settings', 'height-compare' ); ?></h1>
-		<p style="color:#646970;max-width:600px">
-			<?php esc_html_e( 'These are the global defaults applied to all celebrity pages. Per-celebrity overrides set on each post will take priority.', 'height-compare' ); ?>
-		</p>
-
-		<form method="post">
-			<?php wp_nonce_field( 'hc_tpl_settings_save', 'hc_tpl_settings_nonce' ); ?>
-
-			<table class="form-table" role="presentation">
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Default Intro Text', 'height-compare' ); ?></th>
-					<td>
-						<textarea name="lede_template" rows="3" style="width:100%;max-width:600px"><?php echo esc_textarea( $d['lede_template'] ); ?></textarea>
-						<p class="description">
-							<?php esc_html_e( 'Leave blank for the auto-generated sentence. Available variables: {name}, {first_name}, {height_cm}, {height_ft}, {height_m}, {country}.', 'height-compare' ); ?>
-						</p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><?php esc_html_e( 'Show Sections', 'height-compare' ); ?></th>
-					<td>
-						<?php
-						$hc_tpl_items = array(
-							'show_stats'   => __( 'Stats table (height in cm / ft / m / percentile)', 'height-compare' ),
-							'show_cta'     => __( 'Compare CTA button', 'height-compare' ),
-							'show_related' => __( 'Related Celebrities section', 'height-compare' ),
-							'show_faq'     => __( 'FAQ Section', 'height-compare' ),
-						);
-						foreach ( $hc_tpl_items as $hc_k => $hc_label ) :
-						?>
-						<label style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-							<input type="checkbox" name="<?php echo esc_attr( $hc_k ); ?>" value="1"
-								<?php checked( ! empty( $d[ $hc_k ] ) ); ?>>
-							<?php echo esc_html( $hc_label ); ?>
-						</label>
-						<?php endforeach; ?>
-					</td>
-				</tr>
-			</table>
-
-			<?php submit_button( __( 'Save Template Settings', 'height-compare' ) ); ?>
-		</form>
-	</div>
-	<?php
-}
 
 /* ── Admin list columns ────────────────────────────────────────────────── */
 
