@@ -27,6 +27,7 @@ require_once __DIR__ . '/inc/sitemaps.php';
 require_once __DIR__ . '/inc/versus.php';
 require_once __DIR__ . '/inc/svg-support.php';
 require_once __DIR__ . '/inc/meta-boxes.php';
+require_once __DIR__ . '/inc/blocks.php';
 
 if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG )
 	|| ( function_exists( 'wp_get_environment_type' ) &&

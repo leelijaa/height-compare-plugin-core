@@ -1,0 +1,65 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "height-compare/bio-table",
+  "version": "1.0.0",
+  "title": "Biography Table",
+  "category": "text",
+  "icon": "list-view",
+  "description": "Grouped biography/personal info table with inline editing.",
+  "textdomain": "height-compare",
+  "attributes": {
+    "groups": {
+      "type": "array",
+      "default": [
+        {
+          "label": "Personal Info",
+          "rows": [
+            { "label": "Birth Name",  "value": "" },
+            { "label": "Full Name",   "value": "" },
+            { "label": "Nickname",    "value": "" },
+            { "label": "Profession",  "value": "" },
+            { "label": "Birthday",    "value": "" },
+            { "label": "Birth Sign",  "value": "" },
+            { "label": "Birthplace",  "value": "" },
+            { "label": "Age",         "value": "" }
+          ]
+        },
+        {
+          "label": "Family & Background",
+          "rows": [
+            { "label": "School",          "value": "" },
+            { "label": "College",         "value": "" },
+            { "label": "Father's Name",   "value": "" },
+            { "label": "Mother's Name",   "value": "" },
+            { "label": "Siblings",        "value": "" },
+            { "label": "Marital Status",  "value": "" },
+            { "label": "Girlfriend",      "value": "" },
+            { "label": "Wife",            "value": "" },
+            { "label": "Children",        "value": "" },
+            { "label": "Friends",         "value": "" },
+            { "label": "Religion",        "value": "" },
+            { "label": "Hometown",        "value": "" },
+            { "label": "Current Address", "value": "" },
+            { "label": "Hobbies",         "value": "" }
+          ]
+        },
+        {
+          "label": "Career & Finance",
+          "rows": [
+            { "label": "Net Worth",       "value": "" },
+            { "label": "Monthly Earning", "value": "" },
+            { "label": "Awards",          "value": "" }
+          ]
+        }
+      ]
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": [ "wide", "full" ],
+    "color": { "background": false, "text": false }
+  },
+  "editorScript": "file:./editor.js",
+  "editorStyle":  "file:./editor.css"
+}
