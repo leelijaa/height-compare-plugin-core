@@ -551,66 +551,6 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 			</div>
 		</div>
 
-		<!-- ── Section: Body Measurements ─────────────────────────────── -->
-		<div class="hc-cel-tpl__section">
-			<div class="hc-cel-tpl__section-head">
-				<span class="hc-cel-tpl__icon">📏</span>
-				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Body Measurements', 'height-compare' ); ?></h2>
-			</div>
-			<div class="hc-cel-tpl__grid">
-
-				<?php
-				$bm_fields = array(
-					'hc_wingspan_cm'       => 'Wingspan (cm)',
-					'hc_leg_length_cm'     => 'Leg Length / Inseam (cm)',
-					'hc_torso_length_cm'   => 'Torso Length (cm)',
-					'hc_shoulder_width_cm' => 'Shoulder Width (cm)',
-					'hc_hip_width_cm'      => 'Hip Width (cm)',
-					'hc_hand_size_cm'      => 'Hand Size (cm)',
-					'hc_foot_size_cm'      => 'Foot Size (cm)',
-				);
-				foreach ( $bm_fields as $bm_key => $bm_label ) :
-					$bm_val = (float) get_post_meta( $post->ID, $bm_key, true );
-				?>
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="<?php echo esc_attr( $bm_key ); ?>">
-						<?php echo esc_html( $bm_label ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="number" step="0.1" min="0" max="500"
-						name="<?php echo esc_attr( $bm_key ); ?>"
-						id="<?php echo esc_attr( $bm_key ); ?>"
-						value="<?php echo esc_attr( $bm_val > 0 ? $bm_val : '' ); ?>">
-				</div>
-				<?php endforeach; ?>
-
-				<?php
-				$bm_src_url   = (string) get_post_meta( $post->ID, 'hc_body_source_url', true );
-				$bm_src_label = (string) get_post_meta( $post->ID, 'hc_body_source_label', true );
-				?>
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_body_source_label">
-						<?php esc_html_e( 'Source Label', 'height-compare' ); ?>
-						<span class="hc-cel-tpl__hint">shown for height &amp; weight rows</span>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_body_source_label" id="hc_body_source_label"
-						value="<?php echo esc_attr( $bm_src_label ); ?>"
-						placeholder="Club profile (widely listed)">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_body_source_url">
-						<?php esc_html_e( 'Source URL', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="url"
-						name="hc_body_source_url" id="hc_body_source_url"
-						value="<?php echo esc_attr( $bm_src_url ); ?>"
-						placeholder="https://…">
-				</div>
-
-			</div>
-		</div>
-
 		<!-- ── Section: SEO ────────────────────────────────────────────── -->
 		<div class="hc-cel-tpl__section">
 			<div class="hc-cel-tpl__section-head">
