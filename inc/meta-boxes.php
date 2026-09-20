@@ -90,6 +90,19 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 	$body_color  = (string) get_post_meta( $post->ID, 'hc_body_color', true );
 	$body_type              = (string) get_post_meta( $post->ID, 'hc_body_type', true );
 	$physical_attrs_para    = (string) get_post_meta( $post->ID, 'hc_physical_attributes_para', true );
+	$phys_attrs_rows_json   = get_post_meta( $post->ID, 'hc_phys_attrs_rows', true );
+	if ( ! empty( $phys_attrs_rows_json ) ) {
+		$phys_attrs_rows = json_decode( $phys_attrs_rows_json, true ) ?: array();
+	} else {
+		$phys_attrs_rows = array_values( array_filter( array(
+			array( 'Gender',      ucfirst( $gender ) ),
+			array( 'Weight (kg)', $weight_kg > 0 ? (string) $weight_kg : '' ),
+			array( 'Eye Colour',  $eye_color ),
+			array( 'Hair Color',  $hair_color ),
+			array( 'Body Color',  $body_color ),
+			array( 'Body Type',   $body_type ),
+		), function ( $r ) { return '' !== $r[1]; } ) );
+	}
 	$biography_para         = (string) get_post_meta( $post->ID, 'hc_biography_para', true );
 	$hero_bio               = (string) get_post_meta( $post->ID, 'hc_hero_bio', true );
 	$birth_name  = (string) get_post_meta( $post->ID, 'hc_birth_name', true );
@@ -291,77 +304,42 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 			</div>
 			<div class="hc-cel-tpl__grid">
 
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_gender">
-						<?php esc_html_e( 'Gender', 'height-compare' ); ?>
-					</label>
-					<select class="hc-cel-tpl__select" name="hc_gender" id="hc_gender">
-						<?php foreach ( array( 'male', 'female', 'child' ) as $opt ) : ?>
-						<option value="<?php echo esc_attr( $opt ); ?>"
-							<?php selected( $gender, $opt ); ?>>
-							<?php echo esc_html( ucfirst( $opt ) ); ?>
-						</option>
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label"><?php esc_html_e( 'Attribute Rows', 'height-compare' ); ?></label>
+					<div id="hc-phys-attrs-list" class="hc-repeater-list">
+						<?php foreach ( $phys_attrs_rows as $hc_par ) :
+							$hc_par_label = is_array( $hc_par ) ? ( $hc_par[0] ?? '' ) : '';
+							$hc_par_value = is_array( $hc_par ) ? ( $hc_par[1] ?? '' ) : '';
+						?>
+						<div class="hc-repeater-row">
+							<input type="text" name="hc_phys_attr_label[]"
+								class="hc-repeater-row__label hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_par_label ); ?>"
+								placeholder="<?php esc_attr_e( 'Label', 'height-compare' ); ?>">
+							<input type="text" name="hc_phys_attr_value[]"
+								class="hc-repeater-row__value hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_par_value ); ?>"
+								placeholder="<?php esc_attr_e( 'Value', 'height-compare' ); ?>">
+							<button type="button" class="hc-repeater-remove button">✕</button>
+						</div>
 						<?php endforeach; ?>
-					</select>
+					</div>
+					<button type="button" id="hc-phys-attr-add" class="button" style="margin-top:8px">
+						<?php esc_html_e( '+ Add Row', 'height-compare' ); ?>
+					</button>
 				</div>
 
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_weight_kg">
-						<?php esc_html_e( 'Weight (kg)', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="number"
-						name="hc_weight_kg" id="hc_weight_kg"
-						value="<?php echo esc_attr( $weight_kg > 0 ? $weight_kg : '' ); ?>"
-						min="1" max="500"
-						placeholder="83">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_eye_color">
-						<?php esc_html_e( 'Eye Colour', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_eye_color" id="hc_eye_color"
-						value="<?php echo esc_attr( $eye_color ); ?>"
-						placeholder="<?php esc_attr_e( 'Brown', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_hair_color">
-						<?php esc_html_e( 'Hair Color', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_hair_color" id="hc_hair_color"
-						value="<?php echo esc_attr( $hair_color ); ?>"
-						placeholder="<?php esc_attr_e( 'Black', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_body_color">
-						<?php esc_html_e( 'Body Color', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_body_color" id="hc_body_color"
-						value="<?php echo esc_attr( $body_color ); ?>"
-						placeholder="<?php esc_attr_e( 'Light Brown', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_body_type">
-						<?php esc_html_e( 'Body Type', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_body_type" id="hc_body_type"
-						value="<?php echo esc_attr( $body_type ); ?>"
-						placeholder="<?php esc_attr_e( 'Athletic / Large Frame', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_physical_attributes_para">
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label">
 						<?php esc_html_e( 'Physical Attributes — Paragraph', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown below the attributes on the celebrity page', 'height-compare' ); ?></span>
 					</label>
-					<textarea class="hc-cel-tpl__input" name="hc_physical_attributes_para" id="hc_physical_attributes_para" rows="4"
-						placeholder="<?php esc_attr_e( 'Optional paragraph displayed under the Physical Attributes section.', 'height-compare' ); ?>"><?php echo esc_textarea( $physical_attrs_para ); ?></textarea>
+					<?php wp_editor( $physical_attrs_para, 'hcphysattrspara', array(
+						'textarea_name' => 'hc_physical_attributes_para',
+						'media_buttons' => false,
+						'textarea_rows' => 5,
+						'tinymce'       => array( 'toolbar1' => 'bold italic link unlink | undo redo' ),
+					) ); ?>
 				</div>
 
 			</div>
@@ -1174,6 +1152,38 @@ function hc_celebrity_admin_js(): void {
 		});
 	})();
 
+	/* ── Physical attrs row repeater ─────────────────────────────────── */
+	(function () {
+		var physList = document.getElementById('hc-phys-attrs-list');
+		var physAdd  = document.getElementById('hc-phys-attr-add');
+		if (!physList || !physAdd) return;
+
+		function makePhysRow(label, value) {
+			var row = document.createElement('div');
+			row.className = 'hc-repeater-row';
+			row.innerHTML =
+				'<input type="text" name="hc_phys_attr_label[]" class="hc-repeater-row__label hc-cel-tpl__input"' +
+					' value="' + (label || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Label', 'height-compare' ) ); ?>">' +
+				'<input type="text" name="hc_phys_attr_value[]" class="hc-repeater-row__value hc-cel-tpl__input"' +
+					' value="' + (value || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Value', 'height-compare' ) ); ?>">' +
+				'<button type="button" class="hc-repeater-remove button">✕</button>';
+			row.querySelector('.hc-repeater-remove').addEventListener('click', function () { row.remove(); });
+			return row;
+		}
+
+		physList.querySelectorAll('.hc-repeater-remove').forEach(function (btn) {
+			btn.addEventListener('click', function () { btn.closest('.hc-repeater-row').remove(); });
+		});
+
+		physAdd.addEventListener('click', function () {
+			var row = makePhysRow('', '');
+			physList.appendChild(row);
+			row.querySelector('input').focus();
+		});
+	})();
+
 	/* ── Custom section repeater (with dynamic TinyMCE) ─────────────── */
 	(function () {
 		var secList = document.getElementById('hc-sections-list');
@@ -1307,7 +1317,6 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 		// String meta fields — personal, family, career.
 		foreach ( array(
 			'hc_birthplace', 'hc_eye_color', 'hc_hair_color', 'hc_body_color', 'hc_body_type',
-			'hc_physical_attributes_para',
 			'hc_birth_name', 'hc_full_name', 'hc_nickname', 'hc_profession',
 			'hc_school', 'hc_college', 'hc_father_name', 'hc_mother_name',
 			'hc_siblings', 'hc_marital_status', 'hc_girlfriend_name', 'hc_wife_name',
@@ -1322,8 +1331,8 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 			}
 		}
 
-		// Hero bio and biography paragraph — stored as HTML (TinyMCE).
-		foreach ( array( 'hc_hero_bio', 'hc_biography_para' ) as $html_key ) {
+		// Hero bio, biography paragraph, and physical attrs paragraph — stored as HTML (TinyMCE).
+		foreach ( array( 'hc_hero_bio', 'hc_biography_para', 'hc_physical_attributes_para' ) as $html_key ) {
 			$html_val = isset( $_POST[ $html_key ] ) ? wp_kses_post( wp_unslash( $_POST[ $html_key ] ) ) : '';
 			if ( '' === trim( $html_val ) ) {
 				delete_post_meta( $post_id, $html_key );
@@ -1351,6 +1360,45 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 			update_post_meta( $post_id, 'hc_bio_table_rows', wp_json_encode( $hc_bio_rows ) );
 		} else {
 			delete_post_meta( $post_id, 'hc_bio_table_rows' );
+		}
+
+		// Physical attributes rows (JSON).
+		$phys_labels = isset( $_POST['hc_phys_attr_label'] ) && is_array( $_POST['hc_phys_attr_label'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_phys_attr_label'] ) )
+			: array();
+		$phys_values = isset( $_POST['hc_phys_attr_value'] ) && is_array( $_POST['hc_phys_attr_value'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_phys_attr_value'] ) )
+			: array();
+		$hc_phys_rows = array();
+		foreach ( $phys_labels as $i => $plbl ) {
+			$plbl = trim( $plbl );
+			$pval = trim( $phys_values[ $i ] ?? '' );
+			if ( '' !== $plbl && '' !== $pval ) {
+				$hc_phys_rows[] = array( $plbl, $pval );
+				$plbl_lower = strtolower( $plbl );
+				if ( str_contains( $plbl_lower, 'gender' ) ) {
+					$gv = strtolower( $pval );
+					if ( in_array( $gv, array( 'male', 'female', 'child' ), true ) ) {
+						update_post_meta( $post_id, 'hc_gender', $gv );
+					}
+				} elseif ( str_contains( $plbl_lower, 'weight' ) ) {
+					$wv = absint( preg_replace( '/[^0-9]/', '', $pval ) );
+					if ( $wv > 0 ) { update_post_meta( $post_id, 'hc_weight_kg', $wv ); }
+				} elseif ( str_contains( $plbl_lower, 'eye' ) ) {
+					update_post_meta( $post_id, 'hc_eye_color', $pval );
+				} elseif ( str_contains( $plbl_lower, 'hair' ) ) {
+					update_post_meta( $post_id, 'hc_hair_color', $pval );
+				} elseif ( str_contains( $plbl_lower, 'body color' ) || str_contains( $plbl_lower, 'skin' ) ) {
+					update_post_meta( $post_id, 'hc_body_color', $pval );
+				} elseif ( str_contains( $plbl_lower, 'body type' ) ) {
+					update_post_meta( $post_id, 'hc_body_type', $pval );
+				}
+			}
+		}
+		if ( ! empty( $hc_phys_rows ) ) {
+			update_post_meta( $post_id, 'hc_phys_attrs_rows', wp_json_encode( $hc_phys_rows ) );
+		} else {
+			delete_post_meta( $post_id, 'hc_phys_attrs_rows' );
 		}
 
 		// Custom page sections (JSON).
