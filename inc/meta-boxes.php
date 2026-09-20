@@ -123,9 +123,39 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 	$current_address = (string) get_post_meta( $post->ID, 'hc_current_address', true );
 	$children        = (string) get_post_meta( $post->ID, 'hc_children', true );
 	$hobbies         = (string) get_post_meta( $post->ID, 'hc_hobbies', true );
+	$family_bg_rows_json = get_post_meta( $post->ID, 'hc_family_bg_rows', true );
+	if ( ! empty( $family_bg_rows_json ) ) {
+		$family_bg_rows = json_decode( $family_bg_rows_json, true ) ?: array();
+	} else {
+		$family_bg_rows = array_values( array_filter( array(
+			array( 'School',          $school ),
+			array( 'College',         $college ),
+			array( "Father's Name",   $father_name ),
+			array( "Mother's Name",   $mother_name ),
+			array( 'Siblings',        $siblings ),
+			array( 'Marital Status',  $marital_status ),
+			array( 'Girlfriend Name', $girlfriend_name ),
+			array( 'Wife Name',       $wife_name ),
+			array( 'Friends Name',    $friends_names ),
+			array( 'Religion',        $religion ),
+			array( 'Hometown',        $hometown ),
+			array( 'Current Address', $current_address ),
+			array( 'Children',        $children ),
+			array( 'Hobbies',         $hobbies ),
+		), function ( $r ) { return '' !== $r[1]; } ) );
+	}
 	$awards          = (string) get_post_meta( $post->ID, 'hc_awards', true );
 	$net_worth       = (string) get_post_meta( $post->ID, 'hc_net_worth', true );
 	$monthly_earning = (string) get_post_meta( $post->ID, 'hc_monthly_earning', true );
+	$career_rows_json = get_post_meta( $post->ID, 'hc_career_rows', true );
+	if ( ! empty( $career_rows_json ) ) {
+		$career_rows = json_decode( $career_rows_json, true ) ?: array();
+	} else {
+		$career_rows = array_values( array_filter( array(
+			array( 'Awards',          $awards ),
+			array( 'Monthly Earning', $monthly_earning ),
+		), function ( $r ) { return '' !== $r[1]; } ) );
+	}
 	$age_display     = '';
 	if ( '' !== $dob ) {
 		$birth = DateTimeImmutable::createFromFormat( 'Y-m-d', $dob );
@@ -401,92 +431,29 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 			</div>
 			<div class="hc-cel-tpl__grid">
 
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_school"><?php esc_html_e( 'School', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_school" id="hc_school"
-						value="<?php echo esc_attr( $school ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_college"><?php esc_html_e( 'College', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_college" id="hc_college"
-						value="<?php echo esc_attr( $college ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_father_name"><?php esc_html_e( "Father's Name", 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_father_name" id="hc_father_name"
-						value="<?php echo esc_attr( $father_name ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_mother_name"><?php esc_html_e( "Mother's Name", 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_mother_name" id="hc_mother_name"
-						value="<?php echo esc_attr( $mother_name ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_siblings"><?php esc_html_e( 'Siblings', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_siblings" id="hc_siblings"
-						value="<?php echo esc_attr( $siblings ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_marital_status"><?php esc_html_e( 'Marital Status', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_marital_status" id="hc_marital_status"
-						value="<?php echo esc_attr( $marital_status ); ?>"
-						placeholder="<?php esc_attr_e( 'Married', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_girlfriend_name"><?php esc_html_e( 'Girlfriend Name', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_girlfriend_name" id="hc_girlfriend_name"
-						value="<?php echo esc_attr( $girlfriend_name ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_wife_name"><?php esc_html_e( 'Wife Name', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_wife_name" id="hc_wife_name"
-						value="<?php echo esc_attr( $wife_name ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_friends_names"><?php esc_html_e( 'Friends Name', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_friends_names" id="hc_friends_names"
-						value="<?php echo esc_attr( $friends_names ); ?>"
-						placeholder="<?php esc_attr_e( 'Jose Semedo, Ricky Regufe', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_religion"><?php esc_html_e( 'Religion', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_religion" id="hc_religion"
-						value="<?php echo esc_attr( $religion ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_hometown"><?php esc_html_e( 'Hometown', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_hometown" id="hc_hometown"
-						value="<?php echo esc_attr( $hometown ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_current_address"><?php esc_html_e( 'Current Address', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_current_address" id="hc_current_address"
-						value="<?php echo esc_attr( $current_address ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_children"><?php esc_html_e( 'Children', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_children" id="hc_children"
-						value="<?php echo esc_attr( $children ); ?>"
-						placeholder="<?php esc_attr_e( 'Cristiano Jr., Georgina Rodriguez', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_hobbies"><?php esc_html_e( 'Hobbies', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_hobbies" id="hc_hobbies"
-						value="<?php echo esc_attr( $hobbies ); ?>"
-						placeholder="<?php esc_attr_e( 'Workout, Music', 'height-compare' ); ?>">
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label"><?php esc_html_e( 'Rows', 'height-compare' ); ?></label>
+					<div id="hc-family-bg-list" class="hc-repeater-list">
+						<?php foreach ( $family_bg_rows as $hc_fbr ) :
+							$hc_fbr_label = is_array( $hc_fbr ) ? ( $hc_fbr[0] ?? '' ) : '';
+							$hc_fbr_value = is_array( $hc_fbr ) ? ( $hc_fbr[1] ?? '' ) : '';
+						?>
+						<div class="hc-repeater-row">
+							<input type="text" name="hc_family_bg_label[]"
+								class="hc-repeater-row__label hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_fbr_label ); ?>"
+								placeholder="<?php esc_attr_e( 'Label', 'height-compare' ); ?>">
+							<input type="text" name="hc_family_bg_value[]"
+								class="hc-repeater-row__value hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_fbr_value ); ?>"
+								placeholder="<?php esc_attr_e( 'Value', 'height-compare' ); ?>">
+							<button type="button" class="hc-repeater-remove button">✕</button>
+						</div>
+						<?php endforeach; ?>
+					</div>
+					<button type="button" id="hc-family-bg-add" class="button" style="margin-top:8px">
+						<?php esc_html_e( '+ Add Row', 'height-compare' ); ?>
+					</button>
 				</div>
 
 			</div>
@@ -501,16 +468,28 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 			<div class="hc-cel-tpl__grid">
 
 				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
-					<label class="hc-cel-tpl__label" for="hc_awards"><?php esc_html_e( 'Awards', 'height-compare' ); ?></label>
-					<textarea class="hc-cel-tpl__input" name="hc_awards" id="hc_awards" rows="3"
-						placeholder="<?php esc_attr_e( 'FIFA Ballon d\'Or, European Golden Shoe', 'height-compare' ); ?>"><?php echo esc_textarea( $awards ); ?></textarea>
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_monthly_earning"><?php esc_html_e( 'Monthly Earning', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_monthly_earning" id="hc_monthly_earning"
-						value="<?php echo esc_attr( $monthly_earning ); ?>"
-						placeholder="<?php esc_attr_e( '$10 Million', 'height-compare' ); ?>">
+					<label class="hc-cel-tpl__label"><?php esc_html_e( 'Rows', 'height-compare' ); ?></label>
+					<div id="hc-career-list" class="hc-repeater-list">
+						<?php foreach ( $career_rows as $hc_cr ) :
+							$hc_cr_label = is_array( $hc_cr ) ? ( $hc_cr[0] ?? '' ) : '';
+							$hc_cr_value = is_array( $hc_cr ) ? ( $hc_cr[1] ?? '' ) : '';
+						?>
+						<div class="hc-repeater-row">
+							<input type="text" name="hc_career_label[]"
+								class="hc-repeater-row__label hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_cr_label ); ?>"
+								placeholder="<?php esc_attr_e( 'Label', 'height-compare' ); ?>">
+							<input type="text" name="hc_career_value[]"
+								class="hc-repeater-row__value hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_cr_value ); ?>"
+								placeholder="<?php esc_attr_e( 'Value', 'height-compare' ); ?>">
+							<button type="button" class="hc-repeater-remove button">✕</button>
+						</div>
+						<?php endforeach; ?>
+					</div>
+					<button type="button" id="hc-career-add" class="button" style="margin-top:8px">
+						<?php esc_html_e( '+ Add Row', 'height-compare' ); ?>
+					</button>
 				</div>
 
 			</div>
@@ -1124,6 +1103,70 @@ function hc_celebrity_admin_js(): void {
 		});
 	})();
 
+	/* ── Family & Background row repeater ────────────────────────────── */
+	(function () {
+		var fbList = document.getElementById('hc-family-bg-list');
+		var fbAdd  = document.getElementById('hc-family-bg-add');
+		if (!fbList || !fbAdd) return;
+
+		function makeFbRow(label, value) {
+			var row = document.createElement('div');
+			row.className = 'hc-repeater-row';
+			row.innerHTML =
+				'<input type="text" name="hc_family_bg_label[]" class="hc-repeater-row__label hc-cel-tpl__input"' +
+					' value="' + (label || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Label', 'height-compare' ) ); ?>">' +
+				'<input type="text" name="hc_family_bg_value[]" class="hc-repeater-row__value hc-cel-tpl__input"' +
+					' value="' + (value || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Value', 'height-compare' ) ); ?>">' +
+				'<button type="button" class="hc-repeater-remove button">✕</button>';
+			row.querySelector('.hc-repeater-remove').addEventListener('click', function () { row.remove(); });
+			return row;
+		}
+
+		fbList.querySelectorAll('.hc-repeater-remove').forEach(function (btn) {
+			btn.addEventListener('click', function () { btn.closest('.hc-repeater-row').remove(); });
+		});
+
+		fbAdd.addEventListener('click', function () {
+			var row = makeFbRow('', '');
+			fbList.appendChild(row);
+			row.querySelector('input').focus();
+		});
+	})();
+
+	/* ── Career & Financials row repeater ────────────────────────────── */
+	(function () {
+		var crList = document.getElementById('hc-career-list');
+		var crAdd  = document.getElementById('hc-career-add');
+		if (!crList || !crAdd) return;
+
+		function makeCrRow(label, value) {
+			var row = document.createElement('div');
+			row.className = 'hc-repeater-row';
+			row.innerHTML =
+				'<input type="text" name="hc_career_label[]" class="hc-repeater-row__label hc-cel-tpl__input"' +
+					' value="' + (label || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Label', 'height-compare' ) ); ?>">' +
+				'<input type="text" name="hc_career_value[]" class="hc-repeater-row__value hc-cel-tpl__input"' +
+					' value="' + (value || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Value', 'height-compare' ) ); ?>">' +
+				'<button type="button" class="hc-repeater-remove button">✕</button>';
+			row.querySelector('.hc-repeater-remove').addEventListener('click', function () { row.remove(); });
+			return row;
+		}
+
+		crList.querySelectorAll('.hc-repeater-remove').forEach(function (btn) {
+			btn.addEventListener('click', function () { btn.closest('.hc-repeater-row').remove(); });
+		});
+
+		crAdd.addEventListener('click', function () {
+			var row = makeCrRow('', '');
+			crList.appendChild(row);
+			row.querySelector('input').focus();
+		});
+	})();
+
 	/* ── Custom section repeater (with dynamic TinyMCE) ─────────────── */
 	(function () {
 		var secList = document.getElementById('hc-sections-list');
@@ -1339,6 +1382,48 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 			update_post_meta( $post_id, 'hc_phys_attrs_rows', wp_json_encode( $hc_phys_rows ) );
 		} else {
 			delete_post_meta( $post_id, 'hc_phys_attrs_rows' );
+		}
+
+		// Family & Background rows (JSON).
+		$fb_labels = isset( $_POST['hc_family_bg_label'] ) && is_array( $_POST['hc_family_bg_label'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_family_bg_label'] ) )
+			: array();
+		$fb_values = isset( $_POST['hc_family_bg_value'] ) && is_array( $_POST['hc_family_bg_value'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_family_bg_value'] ) )
+			: array();
+		$hc_fb_rows = array();
+		foreach ( $fb_labels as $i => $flbl ) {
+			$flbl = trim( $flbl );
+			$fval = trim( $fb_values[ $i ] ?? '' );
+			if ( '' !== $flbl && '' !== $fval ) {
+				$hc_fb_rows[] = array( $flbl, $fval );
+			}
+		}
+		if ( ! empty( $hc_fb_rows ) ) {
+			update_post_meta( $post_id, 'hc_family_bg_rows', wp_json_encode( $hc_fb_rows ) );
+		} else {
+			delete_post_meta( $post_id, 'hc_family_bg_rows' );
+		}
+
+		// Career & Financials rows (JSON).
+		$cr_labels = isset( $_POST['hc_career_label'] ) && is_array( $_POST['hc_career_label'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_career_label'] ) )
+			: array();
+		$cr_values = isset( $_POST['hc_career_value'] ) && is_array( $_POST['hc_career_value'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_career_value'] ) )
+			: array();
+		$hc_cr_rows = array();
+		foreach ( $cr_labels as $i => $clbl ) {
+			$clbl = trim( $clbl );
+			$cval = trim( $cr_values[ $i ] ?? '' );
+			if ( '' !== $clbl && '' !== $cval ) {
+				$hc_cr_rows[] = array( $clbl, $cval );
+			}
+		}
+		if ( ! empty( $hc_cr_rows ) ) {
+			update_post_meta( $post_id, 'hc_career_rows', wp_json_encode( $hc_cr_rows ) );
+		} else {
+			delete_post_meta( $post_id, 'hc_career_rows' );
 		}
 
 		// Custom page sections (JSON).
