@@ -200,16 +200,6 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 				</div>
 
 				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_birthplace">
-						<?php esc_html_e( 'Birthplace', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_birthplace" id="hc_birthplace"
-						value="<?php echo esc_attr( $birthplace ); ?>"
-						placeholder="<?php esc_attr_e( 'Funchal, Portugal', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
 					<label class="hc-cel-tpl__label" for="hc_weight_kg">
 						<?php esc_html_e( 'Weight (kg)', 'height-compare' ); ?>
 					</label>
@@ -276,12 +266,24 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						placeholder="<?php esc_attr_e( 'Paragraph shown in the hero section, below the auto-generated height sentence.', 'height-compare' ); ?>"><?php echo esc_textarea( $hero_bio ); ?></textarea>
 				</div>
 
-				<div class="hc-cel-tpl__field">
+			</div>
+		</div>
+
+		<!-- ── Section: Biography & Personal Info ────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">📝</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Biography & Personal Info', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
 					<label class="hc-cel-tpl__label" for="hc_biography_para">
-						<?php esc_html_e( 'Biography — Paragraph', 'height-compare' ); ?>
+						<?php esc_html_e( 'Biography Paragraph', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown above the info table on the celebrity page', 'height-compare' ); ?></span>
 					</label>
-					<textarea class="hc-cel-tpl__input" name="hc_biography_para" id="hc_biography_para" rows="4"
-						placeholder="<?php esc_attr_e( 'Optional paragraph displayed under the Biography & Personal Info section.', 'height-compare' ); ?>"><?php echo esc_textarea( $biography_para ); ?></textarea>
+					<textarea class="hc-cel-tpl__input" name="hc_biography_para" id="hc_biography_para" rows="6"
+						placeholder="<?php esc_attr_e( 'Write a short biography paragraph that will appear above the personal info table on the celebrity page.', 'height-compare' ); ?>"><?php echo esc_textarea( $biography_para ); ?></textarea>
 				</div>
 
 				<div class="hc-cel-tpl__field">
@@ -333,6 +335,16 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						name="hc_aliases" id="hc_aliases"
 						value="<?php echo esc_attr( $aliases ); ?>"
 						placeholder="<?php esc_attr_e( 'The Rock, Dwayne Johnson', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_birthplace">
+						<?php esc_html_e( 'Birthplace', 'height-compare' ); ?>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_birthplace" id="hc_birthplace"
+						value="<?php echo esc_attr( $birthplace ); ?>"
+						placeholder="<?php esc_attr_e( 'Funchal, Portugal', 'height-compare' ); ?>">
 				</div>
 
 			</div>
