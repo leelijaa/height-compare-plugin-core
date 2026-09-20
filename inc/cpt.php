@@ -94,12 +94,12 @@ function hc_meta_fields(): array {
 			),
 			'hc_biography_para'         => array(
 				'type'     => 'string',
-				'sanitize' => 'sanitize_textarea_field',
+				'sanitize' => 'wp_kses_post',
 				'label'    => 'Biography Paragraph',
 			),
 			'hc_hero_bio'               => array(
 				'type'     => 'string',
-				'sanitize' => 'sanitize_textarea_field',
+				'sanitize' => 'wp_kses_post',
 				'label'    => 'Hero Bio (shown below height lede)',
 			),
 			'hc_birth_name'        => array(
@@ -206,6 +206,16 @@ function hc_meta_fields(): array {
 				'type'     => 'string',
 				'sanitize' => 'sanitize_text_field',
 				'label'    => 'Monthly Earning',
+			),
+			'hc_bio_table_rows'    => array(
+				'type'     => 'string',
+				'sanitize' => 'wp_kses_post',
+				'label'    => 'Bio Table Rows (JSON)',
+			),
+			'hc_page_sections'     => array(
+				'type'     => 'string',
+				'sanitize' => 'wp_kses_post',
+				'label'    => 'Page Sections (JSON)',
 			),
 			'hc_twitter_handle'       => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Handle' ),
 			'hc_twitter_followers'    => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Followers' ),

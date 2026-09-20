@@ -132,6 +132,52 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 	$tpl_show_faq    = (string) get_post_meta( $post->ID, 'hc_tpl_show_faq', true );
 	// '' = inherit global default, '1' = force show, '0' = force hide.
 	$global_tpl = hc_get_template_defaults();
+
+	// Bio table rows: JSON first, then migrate from individual meta fields.
+	$bio_table_rows_json = get_post_meta( $post->ID, 'hc_bio_table_rows', true );
+	if ( ! empty( $bio_table_rows_json ) ) {
+		$bio_table_rows = json_decode( $bio_table_rows_json, true ) ?: array();
+	} else {
+		$_dob_display = '';
+		if ( '' !== $dob ) {
+			$_d = DateTimeImmutable::createFromFormat( 'Y-m-d', $dob );
+			if ( $_d instanceof DateTimeImmutable ) {
+				$_dob_display = date_i18n( 'F j, Y', $_d->getTimestamp() );
+			}
+		}
+		$bio_table_rows = array_values( array_filter(
+			array(
+				array( 'Birth Name',      $birth_name ),
+				array( 'Full Name',       $full_name ),
+				array( 'Nickname',        $nickname ),
+				array( 'Profession',      $profession ),
+				array( 'Birthday',        $_dob_display ),
+				array( 'Birthplace',      $birthplace ),
+				array( 'School',          $school ),
+				array( 'College',         $college ),
+				array( "Father's Name",   $father_name ),
+				array( "Mother's Name",   $mother_name ),
+				array( 'Siblings',        $siblings ),
+				array( 'Marital Status',  $marital_status ),
+				array( 'Girlfriend',      $girlfriend_name ),
+				array( 'Wife',            $wife_name ),
+				array( 'Children',        $children ),
+				array( 'Friends',         $friends_names ),
+				array( 'Religion',        $religion ),
+				array( 'Hometown',        $hometown ),
+				array( 'Current Address', $current_address ),
+				array( 'Hobbies',         $hobbies ),
+				array( 'Net Worth',       $net_worth ),
+				array( 'Monthly Earning', $monthly_earning ),
+				array( 'Awards',          $awards ),
+			),
+			static fn( array $r ): bool => '' !== $r[1]
+		) );
+	}
+
+	// Custom page sections (JSON).
+	$page_sections_json = get_post_meta( $post->ID, 'hc_page_sections', true );
+	$page_sections = ! empty( $page_sections_json ) ? json_decode( $page_sections_json, true ) ?: array() : array();
 	?>
 	<div class="hc-cel-tpl">
 
@@ -258,14 +304,28 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						placeholder="<?php esc_attr_e( 'Optional paragraph displayed under the Physical Attributes section.', 'height-compare' ); ?>"><?php echo esc_textarea( $physical_attrs_para ); ?></textarea>
 				</div>
 
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_hero_bio">
-						<?php esc_html_e( 'Hero Bio (below height lede)', 'height-compare' ); ?>
-					</label>
-					<textarea class="hc-cel-tpl__input" name="hc_hero_bio" id="hc_hero_bio" rows="4"
-						placeholder="<?php esc_attr_e( 'Paragraph shown in the hero section, below the auto-generated height sentence.', 'height-compare' ); ?>"><?php echo esc_textarea( $hero_bio ); ?></textarea>
-				</div>
+			</div>
+		</div>
 
+		<!-- ── Section: Hero Section ────────────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">🎬</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Hero Section', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label">
+						<?php esc_html_e( 'Hero Bio Paragraph', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown below the auto-generated height sentence in the hero column', 'height-compare' ); ?></span>
+					</label>
+					<?php wp_editor( $hero_bio, 'hcherobi', array(
+						'textarea_name' => 'hc_hero_bio',
+						'media_buttons' => false,
+						'textarea_rows' => 5,
+						'tinymce'       => array( 'toolbar1' => 'bold italic link unlink | undo redo' ),
+					) ); ?>
+				</div>
 			</div>
 		</div>
 
@@ -273,78 +333,45 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 		<div class="hc-cel-tpl__section">
 			<div class="hc-cel-tpl__section-head">
 				<span class="hc-cel-tpl__icon">📝</span>
-				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Biography & Personal Info', 'height-compare' ); ?></h2>
+				<h2 class="hc-cel-tpl__section-title"><?php echo esc_html( $first_name ); ?> <?php esc_html_e( 'Biography & Personal Info', 'height-compare' ); ?></h2>
 			</div>
 			<div class="hc-cel-tpl__grid">
 
 				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
-					<label class="hc-cel-tpl__label" for="hc_biography_para">
+					<label class="hc-cel-tpl__label">
 						<?php esc_html_e( 'Biography Paragraph', 'height-compare' ); ?>
 						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown above the info table on the celebrity page', 'height-compare' ); ?></span>
 					</label>
-					<textarea class="hc-cel-tpl__input" name="hc_biography_para" id="hc_biography_para" rows="6"
-						placeholder="<?php esc_attr_e( 'Write a short biography paragraph that will appear above the personal info table on the celebrity page.', 'height-compare' ); ?>"><?php echo esc_textarea( $biography_para ); ?></textarea>
+					<?php wp_editor( $biography_para, 'hcbiopara', array(
+						'textarea_name' => 'hc_biography_para',
+						'media_buttons' => false,
+						'textarea_rows' => 6,
+					) ); ?>
 				</div>
 
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_birth_name">
-						<?php esc_html_e( 'Birth Name', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_birth_name" id="hc_birth_name"
-						value="<?php echo esc_attr( $birth_name ); ?>"
-						placeholder="<?php esc_attr_e( 'Cristiano Ronaldo dos Santos Aveiro', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_full_name">
-						<?php esc_html_e( 'Full Name', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_full_name" id="hc_full_name"
-						value="<?php echo esc_attr( $full_name ); ?>"
-						placeholder="<?php esc_attr_e( 'Cristiano Ronaldo', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_nickname">
-						<?php esc_html_e( 'Nickname', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_nickname" id="hc_nickname"
-						value="<?php echo esc_attr( $nickname ); ?>"
-						placeholder="<?php esc_attr_e( 'CR7', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_profession">
-						<?php esc_html_e( 'Profession', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_profession" id="hc_profession"
-						value="<?php echo esc_attr( $profession ); ?>"
-						placeholder="<?php esc_attr_e( 'Footballer', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_aliases">
-						<?php esc_html_e( 'Aliases', 'height-compare' ); ?>
-						<span class="hc-cel-tpl__hint">comma-separated</span>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_aliases" id="hc_aliases"
-						value="<?php echo esc_attr( $aliases ); ?>"
-						placeholder="<?php esc_attr_e( 'The Rock, Dwayne Johnson', 'height-compare' ); ?>">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_birthplace">
-						<?php esc_html_e( 'Birthplace', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="text"
-						name="hc_birthplace" id="hc_birthplace"
-						value="<?php echo esc_attr( $birthplace ); ?>"
-						placeholder="<?php esc_attr_e( 'Funchal, Portugal', 'height-compare' ); ?>">
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label"><?php esc_html_e( 'Info Table Rows', 'height-compare' ); ?></label>
+					<div id="hc-bio-rows-list" class="hc-repeater-list">
+						<?php foreach ( $bio_table_rows as $hc_btr ) :
+							$hc_btr_label = is_array( $hc_btr ) ? ( $hc_btr[0] ?? '' ) : '';
+							$hc_btr_value = is_array( $hc_btr ) ? ( $hc_btr[1] ?? '' ) : '';
+						?>
+						<div class="hc-repeater-row">
+							<input type="text" name="hc_bio_row_label[]"
+								class="hc-repeater-row__label hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_btr_label ); ?>"
+								placeholder="<?php esc_attr_e( 'Label', 'height-compare' ); ?>">
+							<input type="text" name="hc_bio_row_value[]"
+								class="hc-repeater-row__value hc-cel-tpl__input"
+								value="<?php echo esc_attr( $hc_btr_value ); ?>"
+								placeholder="<?php esc_attr_e( 'Value', 'height-compare' ); ?>">
+							<button type="button" class="hc-repeater-remove button">✕</button>
+						</div>
+						<?php endforeach; ?>
+					</div>
+					<button type="button" id="hc-bio-row-add" class="button" style="margin-top:8px">
+						<?php esc_html_e( '+ Add Row', 'height-compare' ); ?>
+					</button>
 				</div>
 
 			</div>
@@ -670,6 +697,39 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 				<?php esc_html_e( '+ Add FAQ', 'height-compare' ); ?>
 			</button>
 
+			<!-- Custom content sections repeater -->
+			<hr style="margin:24px 0">
+			<div style="margin-bottom:8px">
+				<strong><?php esc_html_e( 'Custom Content Sections', 'height-compare' ); ?></strong>
+				<span class="hc-cel-tpl__hint" style="margin-left:6px">
+					<?php esc_html_e( 'Each section renders as a full-width content block below the biography section on the front end.', 'height-compare' ); ?>
+				</span>
+			</div>
+			<div id="hc-sections-list">
+				<?php foreach ( $page_sections as $hc_sec_idx => $hc_sec ) :
+					$hc_sec_title   = isset( $hc_sec['title'] )   && is_string( $hc_sec['title'] )   ? $hc_sec['title']   : '';
+					$hc_sec_content = isset( $hc_sec['content'] ) && is_string( $hc_sec['content'] ) ? $hc_sec['content'] : '';
+					$hc_sec_editor_id = 'hcsec_' . $hc_sec_idx;
+				?>
+				<div class="hc-section-block">
+					<input type="text" name="hc_section_title[]"
+						class="hc-cel-tpl__input hc-section-block__title"
+						value="<?php echo esc_attr( $hc_sec_title ); ?>"
+						placeholder="<?php esc_attr_e( 'Section heading', 'height-compare' ); ?>">
+					<?php wp_editor( $hc_sec_content, $hc_sec_editor_id, array(
+						'textarea_name' => 'hc_section_content[]',
+						'media_buttons' => false,
+						'textarea_rows' => 6,
+					) ); ?>
+					<button type="button" class="hc-section-remove button" style="margin-top:8px">
+						<?php esc_html_e( '✕ Remove section', 'height-compare' ); ?>
+					</button>
+				</div>
+				<?php endforeach; ?>
+			</div>
+			<button type="button" id="hc-section-add" class="button button-primary" style="margin-top:10px">
+				<?php esc_html_e( '+ Add Section', 'height-compare' ); ?>
+			</button>
 
 		</div>
 
@@ -1043,6 +1103,77 @@ function hc_celebrity_admin_js(): void {
 			if (newInput) newInput.focus();
 		});
 	}
+
+	/* ── Bio table row repeater ──────────────────────────────────────── */
+	(function () {
+		var bioList = document.getElementById('hc-bio-rows-list');
+		var bioAdd  = document.getElementById('hc-bio-row-add');
+		if (!bioList || !bioAdd) return;
+
+		function makeBioRow(label, value) {
+			var row = document.createElement('div');
+			row.className = 'hc-repeater-row';
+			row.innerHTML =
+				'<input type="text" name="hc_bio_row_label[]" class="hc-repeater-row__label hc-cel-tpl__input"' +
+					' value="' + (label || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Label', 'height-compare' ) ); ?>">' +
+				'<input type="text" name="hc_bio_row_value[]" class="hc-repeater-row__value hc-cel-tpl__input"' +
+					' value="' + (value || '').replace(/"/g, '&quot;') + '"' +
+					' placeholder="<?php echo esc_js( __( 'Value', 'height-compare' ) ); ?>">' +
+				'<button type="button" class="hc-repeater-remove button">✕</button>';
+			row.querySelector('.hc-repeater-remove').addEventListener('click', function () { row.remove(); });
+			return row;
+		}
+
+		bioList.querySelectorAll('.hc-repeater-remove').forEach(function (btn) {
+			btn.addEventListener('click', function () { btn.closest('.hc-repeater-row').remove(); });
+		});
+
+		bioAdd.addEventListener('click', function () {
+			var row = makeBioRow('', '');
+			bioList.appendChild(row);
+			row.querySelector('input').focus();
+		});
+	})();
+
+	/* ── Custom section repeater (with dynamic TinyMCE) ─────────────── */
+	(function () {
+		var secList = document.getElementById('hc-sections-list');
+		var secAdd  = document.getElementById('hc-section-add');
+		if (!secList || !secAdd) return;
+
+		var sectionCount = secList.querySelectorAll('.hc-section-block').length;
+
+		function wireRemove(block) {
+			var btn = block.querySelector('.hc-section-remove');
+			if (!btn) return;
+			btn.addEventListener('click', function () {
+				var ta = block.querySelector('textarea');
+				if (ta && ta.id && window.wp && wp.editor) { wp.editor.remove(ta.id); }
+				block.remove();
+			});
+		}
+
+		secList.querySelectorAll('.hc-section-block').forEach(wireRemove);
+
+		secAdd.addEventListener('click', function () {
+			var edId = 'hcsec_' + sectionCount++;
+			var block = document.createElement('div');
+			block.className = 'hc-section-block';
+			block.innerHTML =
+				'<input type="text" name="hc_section_title[]" class="hc-cel-tpl__input hc-section-block__title"' +
+					' placeholder="<?php echo esc_js( __( 'Section heading', 'height-compare' ) ); ?>">' +
+				'<textarea id="' + edId + '" name="hc_section_content[]" rows="6"></textarea>' +
+				'<button type="button" class="hc-section-remove button" style="margin-top:8px">' +
+					'<?php echo esc_js( __( '✕ Remove section', 'height-compare' ) ); ?>' +
+				'</button>';
+			secList.appendChild(block);
+			if (window.wp && wp.editor) {
+				wp.editor.initialize(edId, { tinymce: true, quicktags: true, mediaButtons: false });
+			}
+			wireRemove(block);
+		});
+	})();
 	</script>
 	<?php
 }
@@ -1138,7 +1269,7 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 		// String meta fields — personal, family, career.
 		foreach ( array(
 			'hc_birthplace', 'hc_eye_color', 'hc_hair_color', 'hc_body_color', 'hc_body_type',
-			'hc_physical_attributes_para', 'hc_biography_para', 'hc_hero_bio',
+			'hc_physical_attributes_para',
 			'hc_birth_name', 'hc_full_name', 'hc_nickname', 'hc_profession',
 			'hc_school', 'hc_college', 'hc_father_name', 'hc_mother_name',
 			'hc_siblings', 'hc_marital_status', 'hc_girlfriend_name', 'hc_wife_name',
@@ -1151,6 +1282,57 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 			} else {
 				update_post_meta( $post_id, $str_key, $val );
 			}
+		}
+
+		// Hero bio and biography paragraph — stored as HTML (TinyMCE).
+		foreach ( array( 'hc_hero_bio', 'hc_biography_para' ) as $html_key ) {
+			$html_val = isset( $_POST[ $html_key ] ) ? wp_kses_post( wp_unslash( $_POST[ $html_key ] ) ) : '';
+			if ( '' === trim( $html_val ) ) {
+				delete_post_meta( $post_id, $html_key );
+			} else {
+				update_post_meta( $post_id, $html_key, $html_val );
+			}
+		}
+
+		// Bio table rows (JSON).
+		$bio_labels = isset( $_POST['hc_bio_row_label'] ) && is_array( $_POST['hc_bio_row_label'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_bio_row_label'] ) )
+			: array();
+		$bio_values = isset( $_POST['hc_bio_row_value'] ) && is_array( $_POST['hc_bio_row_value'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_bio_row_value'] ) )
+			: array();
+		$hc_bio_rows = array();
+		foreach ( $bio_labels as $i => $lbl ) {
+			$lbl = trim( $lbl );
+			$val = trim( $bio_values[ $i ] ?? '' );
+			if ( '' !== $lbl && '' !== $val ) {
+				$hc_bio_rows[] = array( $lbl, $val );
+			}
+		}
+		if ( ! empty( $hc_bio_rows ) ) {
+			update_post_meta( $post_id, 'hc_bio_table_rows', wp_json_encode( $hc_bio_rows ) );
+		} else {
+			delete_post_meta( $post_id, 'hc_bio_table_rows' );
+		}
+
+		// Custom page sections (JSON).
+		$sec_titles   = isset( $_POST['hc_section_title'] ) && is_array( $_POST['hc_section_title'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_section_title'] ) )
+			: array();
+		$sec_contents = isset( $_POST['hc_section_content'] ) && is_array( $_POST['hc_section_content'] )
+			? $_POST['hc_section_content']
+			: array();
+		$hc_page_secs = array();
+		foreach ( $sec_titles as $i => $sec_title ) {
+			$sec_content = wp_kses_post( wp_unslash( $sec_contents[ $i ] ?? '' ) );
+			if ( '' !== trim( $sec_title ) || '' !== trim( $sec_content ) ) {
+				$hc_page_secs[] = array( 'title' => $sec_title, 'content' => $sec_content );
+			}
+		}
+		if ( ! empty( $hc_page_secs ) ) {
+			update_post_meta( $post_id, 'hc_page_sections', wp_json_encode( $hc_page_secs ) );
+		} else {
+			delete_post_meta( $post_id, 'hc_page_sections' );
 		}
 		// Weight.
 		$wt = isset( $_POST['hc_weight_kg'] ) ? absint( $_POST['hc_weight_kg'] ) : 0;
