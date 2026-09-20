@@ -266,6 +266,20 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						value="<?php echo esc_attr( $cm > 0 ? (string) $in_val : '' ); ?>"
 						aria-label="<?php esc_attr_e( 'inches', 'height-compare' ); ?>">
 				</div>
+				<div class="hc-cel-tpl__height-field">
+					<label class="hc-cel-tpl__label" for="hc_cel_m">m</label>
+					<input class="hc-cel-tpl__num hc-m" type="text" id="hc_cel_m" readonly
+						value="<?php echo esc_attr( $cm > 0 ? number_format( $cm / 100, 2 ) : '' ); ?>"
+						aria-label="<?php esc_attr_e( 'metres', 'height-compare' ); ?>"
+						tabindex="-1">
+				</div>
+				<div class="hc-cel-tpl__height-field">
+					<label class="hc-cel-tpl__label" for="hc_cel_yd">yd</label>
+					<input class="hc-cel-tpl__num hc-yd" type="text" id="hc_cel_yd" readonly
+						value="<?php echo esc_attr( $cm > 0 ? number_format( $cm / 91.44, 2 ) : '' ); ?>"
+						aria-label="<?php esc_attr_e( 'yards', 'height-compare' ); ?>"
+						tabindex="-1">
+				</div>
 			</div>
 		</div>
 
@@ -1041,13 +1055,20 @@ function hc_celebrity_admin_js(): void {
 		var cm   = pair.querySelector('.hc-cm');
 		var ft   = pair.querySelector('.hc-ft');
 		var inch = pair.querySelector('.hc-in');
+		var m    = pair.querySelector('.hc-m');
 		var yd   = pair.querySelector('.hc-yd');
 		function fromCm() {
 			var v = parseFloat(cm.value);
-			if (!isFinite(v) || v <= 0) { ft.value = ''; inch.value = ''; if (yd) yd.textContent = ''; return; }
+			if (!isFinite(v) || v <= 0) {
+				ft.value = ''; inch.value = '';
+				if (m) m.value = '';
+				if (yd) yd.value = '';
+				return;
+			}
 			ft.value   = Math.floor(v / 30.48);
 			inch.value = Math.round((v % 30.48) / 2.54 * 10) / 10;
-			if (yd) yd.textContent = Math.round(v / 91.44 * 100) / 100;
+			if (m) m.value   = Math.round(v / 100 * 100) / 100;
+			if (yd) yd.value = Math.round(v / 91.44 * 100) / 100;
 		}
 		function fromFt() {
 			var f = parseFloat(ft.value) || 0;
