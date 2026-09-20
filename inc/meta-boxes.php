@@ -181,12 +181,69 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 	?>
 	<div class="hc-cel-tpl">
 
-		<!-- ── Section: Height ──────────────────────────────────────────── -->
+		<!-- ── Section: Hero Section ────────────────────────────────────── -->
+		<div class="hc-cel-tpl__section">
+			<div class="hc-cel-tpl__section-head">
+				<span class="hc-cel-tpl__icon">🎬</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Hero Section', 'height-compare' ); ?></h2>
+			</div>
+			<div class="hc-cel-tpl__grid">
+
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label">
+						<?php esc_html_e( 'Hero Bio Paragraph', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown below the auto-generated height sentence in the hero column', 'height-compare' ); ?></span>
+					</label>
+					<?php wp_editor( $hero_bio, 'hcherobi', array(
+						'textarea_name' => 'hc_hero_bio',
+						'media_buttons' => false,
+						'textarea_rows' => 5,
+						'tinymce'       => array( 'toolbar1' => 'bold italic link unlink | undo redo' ),
+					) ); ?>
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_dob">
+						<?php esc_html_e( 'Date of Birth', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint" id="hc_dob_age_hint"><?php echo '' !== $age_display ? 'Age: ' . esc_html( $age_display ) : ''; ?></span>
+					</label>
+					<input class="hc-cel-tpl__input" type="date"
+						name="hc_dob" id="hc_dob"
+						value="<?php echo esc_attr( $dob ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_profession">
+						<?php esc_html_e( 'Profession', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown in the Profession stat tile', 'height-compare' ); ?></span>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_profession" id="hc_profession"
+						value="<?php echo esc_attr( $profession ); ?>"
+						placeholder="<?php esc_attr_e( 'Singer-Songwriter', 'height-compare' ); ?>">
+				</div>
+
+				<div class="hc-cel-tpl__field">
+					<label class="hc-cel-tpl__label" for="hc_net_worth">
+						<?php esc_html_e( 'Net Worth', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown in the Net Worth stat tile', 'height-compare' ); ?></span>
+					</label>
+					<input class="hc-cel-tpl__input" type="text"
+						name="hc_net_worth" id="hc_net_worth"
+						value="<?php echo esc_attr( $net_worth ); ?>"
+						placeholder="<?php esc_attr_e( '$50 Million', 'height-compare' ); ?>">
+				</div>
+
+			</div>
+		</div>
+
+		<!-- ── Section: Height in Every Unit ───────────────────────────── -->
 		<div class="hc-cel-tpl__section">
 			<div class="hc-cel-tpl__section-head">
 				<span class="hc-cel-tpl__icon">📏</span>
-				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Height', 'height-compare' ); ?></h2>
+				<h2 class="hc-cel-tpl__section-title"><?php echo esc_html( $first_name ); ?> <?php esc_html_e( 'Height in Every Unit', 'height-compare' ); ?></h2>
 			</div>
+			<p class="hc-cel-tpl__desc"><?php esc_html_e( 'Drives the unit cards, comparison chart, and the Height stat tile in the hero.', 'height-compare' ); ?></p>
 			<div class="hc-cel-tpl__height-row hc-height-pair" data-key="hc_height_cm">
 				<div class="hc-cel-tpl__height-field">
 					<label class="hc-cel-tpl__label" for="hc_height_cm">cm</label>
@@ -232,17 +289,6 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						</option>
 						<?php endforeach; ?>
 					</select>
-				</div>
-
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_dob">
-						<?php esc_html_e( 'Date of Birth', 'height-compare' ); ?>
-						<span class="hc-cel-tpl__hint" id="hc_dob_age_hint"><?php echo '' !== $age_display ? 'Age: ' . esc_html( $age_display ) : ''; ?></span>
-					</label>
-					<input class="hc-cel-tpl__input" type="date"
-						name="hc_dob" id="hc_dob"
-						value="<?php echo esc_attr( $dob ); ?>">
 				</div>
 
 				<div class="hc-cel-tpl__field">
@@ -304,28 +350,6 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						placeholder="<?php esc_attr_e( 'Optional paragraph displayed under the Physical Attributes section.', 'height-compare' ); ?>"><?php echo esc_textarea( $physical_attrs_para ); ?></textarea>
 				</div>
 
-			</div>
-		</div>
-
-		<!-- ── Section: Hero Section ────────────────────────────────────── -->
-		<div class="hc-cel-tpl__section">
-			<div class="hc-cel-tpl__section-head">
-				<span class="hc-cel-tpl__icon">🎬</span>
-				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Hero Section', 'height-compare' ); ?></h2>
-			</div>
-			<div class="hc-cel-tpl__grid">
-				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
-					<label class="hc-cel-tpl__label">
-						<?php esc_html_e( 'Hero Bio Paragraph', 'height-compare' ); ?>
-						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown below the auto-generated height sentence in the hero column', 'height-compare' ); ?></span>
-					</label>
-					<?php wp_editor( $hero_bio, 'hcherobi', array(
-						'textarea_name' => 'hc_hero_bio',
-						'media_buttons' => false,
-						'textarea_rows' => 5,
-						'tinymce'       => array( 'toolbar1' => 'bold italic link unlink | undo redo' ),
-					) ); ?>
-				</div>
 			</div>
 		</div>
 
@@ -488,13 +512,6 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 					<label class="hc-cel-tpl__label" for="hc_awards"><?php esc_html_e( 'Awards', 'height-compare' ); ?></label>
 					<textarea class="hc-cel-tpl__input" name="hc_awards" id="hc_awards" rows="3"
 						placeholder="<?php esc_attr_e( 'FIFA Ballon d\'Or, European Golden Shoe', 'height-compare' ); ?>"><?php echo esc_textarea( $awards ); ?></textarea>
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_net_worth"><?php esc_html_e( 'Net Worth', 'height-compare' ); ?></label>
-					<input class="hc-cel-tpl__input" type="text" name="hc_net_worth" id="hc_net_worth"
-						value="<?php echo esc_attr( $net_worth ); ?>"
-						placeholder="<?php esc_attr_e( '$1.1 Billion', 'height-compare' ); ?>">
 				</div>
 
 				<div class="hc-cel-tpl__field">
