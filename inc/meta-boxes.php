@@ -212,11 +212,11 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 			</div>
 		</div>
 
-		<!-- ── Section: Personal Details ───────────────────────────────── -->
+		<!-- ── Section: Physical Attributes ─────────────────────────────── -->
 		<div class="hc-cel-tpl__section">
 			<div class="hc-cel-tpl__section-head">
-				<span class="hc-cel-tpl__icon">👤</span>
-				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Personal Details', 'height-compare' ); ?></h2>
+				<span class="hc-cel-tpl__icon">💪</span>
+				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'Physical Attributes', 'height-compare' ); ?></h2>
 			</div>
 			<div class="hc-cel-tpl__grid">
 
