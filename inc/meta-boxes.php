@@ -633,6 +633,14 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 					<?php esc_html_e( 'Each section renders as a full-width content block below the biography section on the front end.', 'height-compare' ); ?>
 				</span>
 			</div>
+			<?php
+			add_filter( 'tiny_mce_before_init', static function ( $init ) {
+				if ( isset( $init['plugins'] ) && false === strpos( $init['plugins'], 'table' ) ) {
+					$init['plugins'] .= ',table';
+				}
+				return $init;
+			} );
+			?>
 			<div id="hc-sections-list">
 				<?php foreach ( $page_sections as $hc_sec_idx => $hc_sec ) :
 					$hc_sec_title   = isset( $hc_sec['title'] )   && is_string( $hc_sec['title'] )   ? $hc_sec['title']   : '';
@@ -647,7 +655,11 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 					<?php wp_editor( $hc_sec_content, $hc_sec_editor_id, array(
 						'textarea_name' => 'hc_section_content[]',
 						'media_buttons' => false,
-						'textarea_rows' => 6,
+						'textarea_rows' => 8,
+						'tinymce'       => array(
+							'toolbar1' => 'bold italic | blockquote | bullist numlist | link unlink | table | undo redo',
+							'toolbar2' => '',
+						),
 					) ); ?>
 					<button type="button" class="hc-section-remove button" style="margin-top:8px">
 						<?php esc_html_e( '✕ Remove section', 'height-compare' ); ?>
@@ -1175,16 +1187,40 @@ function hc_celebrity_admin_js(): void {
 
 		var sectionCount = secList.querySelectorAll('.hc-section-block').length;
 
+		function initSecEditor(edId) {
+			if (!window.tinymce || !window.tinyMCEPreInit) return;
+			var baseKey = Object.keys(tinyMCEPreInit.mceInit || {})[0];
+			if (!baseKey) return;
+			var cfg = Object.assign({}, tinyMCEPreInit.mceInit[baseKey]);
+			cfg.selector  = '#' + edId;
+			cfg.toolbar1  = 'bold italic | blockquote | bullist numlist | link unlink | table | undo redo';
+			cfg.toolbar2  = '';
+			cfg.toolbar3  = '';
+			cfg.toolbar4  = '';
+			if (cfg.plugins && cfg.plugins.indexOf('table') === -1) {
+				cfg.plugins += ',table';
+			}
+			cfg.body_class = edId + ' post-type-celebrity';
+			delete cfg.wpautoresize; // allow manual resize
+			tinyMCEPreInit.mceInit[edId] = cfg;
+			tinymce.init(cfg);
+			if (window.quicktags) { quicktags({ id: edId }); }
+		}
+
 		function wireRemove(block) {
 			var btn = block.querySelector('.hc-section-remove');
 			if (!btn) return;
 			btn.addEventListener('click', function () {
 				var ta = block.querySelector('textarea');
-				if (ta && ta.id && window.wp && wp.editor) { wp.editor.remove(ta.id); }
+				if (ta && ta.id) {
+					if (window.tinymce) { tinymce.remove('#' + ta.id); }
+					delete (tinyMCEPreInit.mceInit || {})[ta.id];
+				}
 				block.remove();
 			});
 		}
 
+		// Wire remove on existing PHP-rendered blocks
 		secList.querySelectorAll('.hc-section-block').forEach(wireRemove);
 
 		secAdd.addEventListener('click', function () {
@@ -1194,14 +1230,13 @@ function hc_celebrity_admin_js(): void {
 			block.innerHTML =
 				'<input type="text" name="hc_section_title[]" class="hc-cel-tpl__input hc-section-block__title"' +
 					' placeholder="<?php echo esc_js( __( 'Section heading', 'height-compare' ) ); ?>">' +
-				'<textarea id="' + edId + '" name="hc_section_content[]" rows="6"></textarea>' +
+				'<textarea id="' + edId + '" name="hc_section_content[]" rows="8" class="wp-editor-area"></textarea>' +
 				'<button type="button" class="hc-section-remove button" style="margin-top:8px">' +
 					'<?php echo esc_js( __( '✕ Remove section', 'height-compare' ) ); ?>' +
 				'</button>';
 			secList.appendChild(block);
-			if (window.wp && wp.editor) {
-				wp.editor.initialize(edId, { tinymce: true, quicktags: true, mediaButtons: false });
-			}
+			// Defer so the textarea is in the DOM before TinyMCE queries it
+			setTimeout(function () { initSecEditor(edId); }, 50);
 			wireRemove(block);
 		});
 	})();
