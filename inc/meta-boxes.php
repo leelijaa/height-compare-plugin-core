@@ -657,7 +657,8 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						'media_buttons' => false,
 						'textarea_rows' => 8,
 						'tinymce'       => array(
-							'toolbar1' => 'bold italic | blockquote | bullist numlist | link unlink | table | undo redo',
+							'toolbar1' => 'formatselect | bold italic | blockquote | bullist numlist | link unlink | table | undo redo',
+							'block_formats' => 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4',
 							'toolbar2' => '',
 						),
 					) ); ?>
@@ -1193,7 +1194,8 @@ function hc_celebrity_admin_js(): void {
 			if (!baseKey) return;
 			var cfg = Object.assign({}, tinyMCEPreInit.mceInit[baseKey]);
 			cfg.selector  = '#' + edId;
-			cfg.toolbar1  = 'bold italic | blockquote | bullist numlist | link unlink | table | undo redo';
+			cfg.toolbar1  = 'formatselect | bold italic | blockquote | bullist numlist | link unlink | table | undo redo';
+			cfg.block_formats = 'Paragraph=p;Heading 2=h2;Heading 3=h3;Heading 4=h4';
 			cfg.toolbar2  = '';
 			cfg.toolbar3  = '';
 			cfg.toolbar4  = '';
@@ -1204,7 +1206,6 @@ function hc_celebrity_admin_js(): void {
 			delete cfg.wpautoresize; // allow manual resize
 			tinyMCEPreInit.mceInit[edId] = cfg;
 			tinymce.init(cfg);
-			if (window.quicktags) { quicktags({ id: edId }); }
 		}
 
 		function wireRemove(block) {
