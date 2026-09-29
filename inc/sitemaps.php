@@ -54,7 +54,7 @@ function hc_render_sitemap( string $name ): void {
  * Sitemap index listing the child sitemaps.
  */
 function hc_render_sitemap_index(): void {
-	$children = array( 'pages', 'celebrities', 'countries', 'blog', 'versus', 'celebrity-groups', 'celebrity-cats' );
+	$children = array( 'pages', 'celebrities', 'height-references', 'countries', 'blog', 'versus', 'celebrity-groups', 'celebrity-cats' );
 	echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 	foreach ( $children as $child ) {
 		printf(
@@ -101,11 +101,18 @@ function hc_sitemap_urls( string $name ): array {
 					'lastmod' => get_post_modified_time( 'c', true, $hc_converter ) ?: '',
 				);
 			}
-			$urls[] = array( 'loc' => (string) get_post_type_archive_link( 'celebrity' ), 'lastmod' => '' );
+			$celeb_archive = get_post_type_archive_link( 'celebrity' );
+			if ( is_string( $celeb_archive ) && '' !== $celeb_archive ) {
+				$urls[] = array( 'loc' => $celeb_archive, 'lastmod' => '' );
+			}
 			break;
 
 		case 'celebrities':
 			$urls = hc_sitemap_posts( 'celebrity' );
+			break;
+
+		case 'height-references':
+			$urls = hc_sitemap_posts( 'height_reference' );
 			break;
 
 		case 'countries':
@@ -220,8 +227,13 @@ function hc_sitemap_versus(): array {
 		for ( $j = $i + 1; $j < $count; $j++ ) {
 			$slug_a = str_replace( '-height', '', $celebs[ $i ]->post_name );
 			$slug_b = str_replace( '-height', '', $celebs[ $j ]->post_name );
+			$key    = $slug_a . '-vs-' . $slug_b;
+			$data   = hc_versus_data( $key );
+			if ( null === $data || ! $data['indexable'] ) {
+				continue;
+			}
 			$urls[] = array(
-				'loc'     => hc_versus_url( $slug_a . '-vs-' . $slug_b ),
+				'loc'     => hc_versus_url( $key ),
 				'lastmod' => '',
 			);
 			if ( count( $urls ) >= 500 ) {

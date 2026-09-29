@@ -89,7 +89,7 @@ function hc_meta_fields(): array {
 			),
 			'hc_physical_attributes_para' => array(
 				'type'     => 'string',
-				'sanitize' => 'sanitize_textarea_field',
+				'sanitize' => 'wp_kses_post',
 				'label'    => 'Physical Attributes Paragraph',
 			),
 			'hc_biography_para'         => array(

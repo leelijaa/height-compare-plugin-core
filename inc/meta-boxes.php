@@ -1276,7 +1276,7 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			continue;
 		}
-		$raw   = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+		$raw   = is_string( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : '';
 		$clean = call_user_func( $def['sanitize'], $raw );
 		if ( '' === $clean || 0 === $clean || 0.0 === $clean ) {
 			delete_post_meta( $post_id, $key );
@@ -1492,7 +1492,7 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 		// Body measurements (numeric cm fields).
 		$bm_keys = array( 'hc_wingspan_cm', 'hc_leg_length_cm', 'hc_torso_length_cm', 'hc_shoulder_width_cm', 'hc_hip_width_cm', 'hc_hand_size_cm', 'hc_foot_size_cm' );
 		foreach ( $bm_keys as $bm_key ) {
-			$bm_val = isset( $_POST[ $bm_key ] ) ? (float) $_POST[ $bm_key ] : 0.0;
+			$bm_val = isset( $_POST[ $bm_key ] ) ? (float) sanitize_text_field( wp_unslash( $_POST[ $bm_key ] ) ) : 0.0;
 			if ( $bm_val > 0 ) {
 				update_post_meta( $post_id, $bm_key, round( $bm_val, 1 ) );
 			} else {
