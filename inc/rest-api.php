@@ -164,11 +164,15 @@ function hc_all_presets(): array {
 	// One query for both hc_preset_cat (references) and celebrity_group (celebrities).
 	global $wpdb;
 	$term_rows = $wpdb->get_results(
-		"SELECT tr.object_id, t.slug, tt.taxonomy
-		 FROM {$wpdb->term_relationships} tr
-		 JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-		 JOIN {$wpdb->terms} t          ON tt.term_id           = t.term_id
-		 WHERE tt.taxonomy IN ('hc_preset_cat','celebrity_group')",
+		$wpdb->prepare(
+			"SELECT tr.object_id, t.slug, tt.taxonomy
+			 FROM {$wpdb->term_relationships} tr
+			 JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+			 JOIN {$wpdb->terms} t          ON tt.term_id           = t.term_id
+			 WHERE tt.taxonomy IN (%s, %s)",
+			'hc_preset_cat',
+			'celebrity_group'
+		),
 		ARRAY_A
 	);
 	$ref_cat_map = array();

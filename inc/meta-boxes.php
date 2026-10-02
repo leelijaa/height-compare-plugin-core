@@ -43,7 +43,7 @@ function hc_admin_enqueue( string $hook ): void {
 	if ( 'celebrity' === $screen->post_type ) {
 		wp_enqueue_style(
 			'hc-celebrity-admin',
-			HC_URI . '/assets/css/celebrity-admin.css',
+			get_template_directory_uri() . '/assets/css/celebrity-admin.css',
 			array(),
 			HC_VERSION
 		);
@@ -53,7 +53,7 @@ function hc_admin_enqueue( string $hook ): void {
 	} elseif ( 'page' === $screen->post_type && hc_is_converter_page( $screen ) ) {
 		wp_enqueue_style(
 			'hc-celebrity-admin',
-			HC_URI . '/assets/css/celebrity-admin.css',
+			get_template_directory_uri() . '/assets/css/celebrity-admin.css',
 			array(),
 			HC_VERSION
 		);

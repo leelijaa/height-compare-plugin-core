@@ -59,7 +59,7 @@ function hc_add_rewrite_rules(): void {
 	// Sitemaps.
 	add_rewrite_rule( '^sitemap\.xml$', 'index.php?hc_sitemap=index', 'top' );
 	add_rewrite_rule(
-		'^sitemap-(pages|celebrities|countries|blog|versus|celebrity-groups|celebrity-cats)\.xml$',
+		'^sitemap-(pages|celebrities|height-references|countries|blog|versus|celebrity-groups|celebrity-cats)\.xml$',
 		'index.php?hc_sitemap=$matches[1]',
 		'top'
 	);
@@ -78,7 +78,7 @@ add_action( 'init', 'hc_add_rewrite_rules' );
 function hc_force_sitemap_query( array $vars ): array {
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
-	if ( preg_match( '#/sitemap(?:-(pages|celebrities|countries|blog|versus|celebrity-groups|celebrity-cats))?\.xml$#', $path, $m ) === 1 ) {
+	if ( preg_match( '#/sitemap(?:-(pages|celebrities|height-references|countries|blog|versus|celebrity-groups|celebrity-cats))?\.xml$#', $path, $m ) === 1 ) {
 		unset( $vars['sitemap'], $vars['sitemap-subtype'], $vars['sitemap-stylesheet'] );
 		$vars['hc_sitemap'] = ( '' !== ( $m[1] ?? '' ) ) ? $m[1] : 'index';
 	}

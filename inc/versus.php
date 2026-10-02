@@ -128,5 +128,5 @@ function hc_versus_title( string $key ): string {
  * @param string $key Versus key.
  */
 function hc_versus_url( string $key ): string {
-	return home_url( '/compare/' . $key . '-height/' );
+	return home_url( '/compare/' . strtolower( $key ) . '-height/' );
 }

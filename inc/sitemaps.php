@@ -128,7 +128,7 @@ function hc_sitemap_urls( string $name ): array {
 			break;
 
 		case 'celebrity-groups':
-			$urls = hc_sitemap_terms( 'celebrity_group' );
+			$urls = hc_sitemap_terms( 'celebrity_group', true );
 			break;
 
 		case 'celebrity-cats':
@@ -171,7 +171,7 @@ function hc_sitemap_posts( string $post_type ): array {
  * @param string $taxonomy Taxonomy name.
  * @return array<int, array{loc: string, lastmod: string}>
  */
-function hc_sitemap_terms( string $taxonomy ): array {
+function hc_sitemap_terms( string $taxonomy, bool $skip_parents = false ): array {
 	$terms = get_terms(
 		array(
 			'taxonomy'   => $taxonomy,
@@ -185,6 +185,10 @@ function hc_sitemap_terms( string $taxonomy ): array {
 	$urls = array();
 	foreach ( $terms as $term ) {
 		if ( ! ( $term instanceof WP_Term ) ) {
+			continue;
+		}
+		// Skip hub/parent terms (shallow content, links only to children).
+		if ( $skip_parents && 0 === $term->parent ) {
 			continue;
 		}
 		$urls[] = array(
@@ -225,8 +229,8 @@ function hc_sitemap_versus(): array {
 	$count = count( $celebs );
 	for ( $i = 0; $i < $count; $i++ ) {
 		for ( $j = $i + 1; $j < $count; $j++ ) {
-			$slug_a = str_replace( '-height', '', $celebs[ $i ]->post_name );
-			$slug_b = str_replace( '-height', '', $celebs[ $j ]->post_name );
+			$slug_a = $celebs[ $i ]->post_name;
+			$slug_b = $celebs[ $j ]->post_name;
 			$key    = $slug_a . '-vs-' . $slug_b;
 			$data   = hc_versus_data( $key );
 			if ( null === $data || ! $data['indexable'] ) {

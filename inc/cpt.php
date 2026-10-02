@@ -102,6 +102,11 @@ function hc_meta_fields(): array {
 				'sanitize' => 'wp_kses_post',
 				'label'    => 'Hero Bio (shown below height lede)',
 			),
+			'hc_dob'               => array(
+				'type'     => 'string',
+				'sanitize' => 'hc_sanitize_dob',
+				'label'    => 'Date of Birth (YYYY-MM-DD)',
+			),
 			'hc_birth_name'        => array(
 				'type'     => 'string',
 				'sanitize' => 'sanitize_text_field',
@@ -320,6 +325,11 @@ function hc_meta_fields(): array {
  *
  * @param mixed $value Raw value.
  */
+function hc_sanitize_dob( $value ): string {
+	$s = sanitize_text_field( (string) $value );
+	return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $s ) ? $s : '';
+}
+
 function hc_sanitize_height( $value ): float {
 	$v = (float) $value;
 	if ( $v < 1.0 ) {
@@ -474,6 +484,38 @@ function hc_register_celebrity_group(): void {
 add_action( 'init', 'hc_register_celebrity_group', 11 );
 
 /**
+ * Register Celebrity Categories flat taxonomy for content-type grouping.
+ * Used alongside celebrity_group for category archive pages.
+ */
+function hc_register_celebrity_cat(): void {
+	register_taxonomy(
+		'celebrity_cat',
+		array( 'celebrity' ),
+		array(
+			'labels'            => array(
+				'name'          => 'Celebrity Categories',
+				'singular_name' => 'Celebrity Category',
+				'add_new_item'  => 'Add New Category',
+				'edit_item'     => 'Edit Category',
+				'search_items'  => 'Search Categories',
+				'all_items'     => 'All Categories',
+				'not_found'     => 'No categories found.',
+				'menu_name'     => 'Celebrity Categories',
+			),
+			'hierarchical'      => false,
+			'show_ui'           => true,
+			'show_in_rest'      => true,
+			'show_admin_column' => true,
+			'rewrite'           => array(
+				'slug'       => 'celebrity-category',
+				'with_front' => false,
+			),
+		)
+	);
+}
+add_action( 'init', 'hc_register_celebrity_cat', 11 );
+
+/**
  * One-time migration: strip -height suffix from all celebrity slugs.
  * Runs once on admin_init, guarded by an option flag.
  */
@@ -552,28 +594,6 @@ function hc_seed_height_group(): void {
 }
 add_action( 'admin_init', 'hc_seed_height_group' );
 
-/**
- * Register hc_dob (YYYY-MM-DD) post meta for celebrity.
- */
-function hc_register_dob_meta(): void {
-	register_post_meta(
-		'celebrity',
-		'hc_dob',
-		array(
-			'type'              => 'string',
-			'single'            => true,
-			'show_in_rest'      => true,
-			'sanitize_callback' => static function ( $v ): string {
-				$s = sanitize_text_field( (string) $v );
-				return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $s ) ? $s : '';
-			},
-			'auth_callback'     => static function (): bool {
-				return current_user_can( 'edit_posts' );
-			},
-		)
-	);
-}
-add_action( 'init', 'hc_register_dob_meta' );
 
 /**
  * Find or create an exact age term (e.g. "28") under the "Age Group" parent

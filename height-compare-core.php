@@ -41,6 +41,7 @@ register_activation_hook(
 	static function (): void {
 		hc_register_post_types();
 		hc_register_celebrity_group();
+		hc_register_celebrity_cat();
 		hc_register_avatar_cpt();
 		hc_register_avatar_taxonomies();
 		hc_add_rewrite_rules();
