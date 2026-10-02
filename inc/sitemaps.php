@@ -54,12 +54,37 @@ function hc_render_sitemap( string $name ): void {
  * Sitemap index listing the child sitemaps.
  */
 function hc_render_sitemap_index(): void {
+	global $wpdb;
 	$children = array( 'pages', 'celebrities', 'height-references', 'countries', 'blog', 'versus', 'celebrity-groups', 'celebrity-cats' );
+
+	// Map child name → post types/taxonomies for lastmod query.
+	$type_map = array(
+		'celebrities'      => array( 'type' => 'post', 'post_type' => 'celebrity' ),
+		'height-references'=> array( 'type' => 'post', 'post_type' => 'height_reference' ),
+		'countries'        => array( 'type' => 'post', 'post_type' => 'country_average' ),
+		'blog'             => array( 'type' => 'post', 'post_type' => 'post' ),
+	);
+
 	echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 	foreach ( $children as $child ) {
+		$lastmod = '';
+		if ( isset( $type_map[ $child ] ) ) {
+			$pt = $type_map[ $child ]['post_type'];
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$row = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT MAX(post_modified_gmt) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+					$pt
+				)
+			);
+			if ( is_string( $row ) && '' !== $row ) {
+				$lastmod = gmdate( 'c', strtotime( $row ) );
+			}
+		}
 		printf(
-			"<sitemap><loc>%s</loc></sitemap>\n",
-			esc_url( home_url( '/sitemap-' . $child . '.xml' ) )
+			"<sitemap><loc>%s</loc>%s</sitemap>\n",
+			esc_url( home_url( '/sitemap-' . $child . '.xml' ) ),
+			'' !== $lastmod ? '<lastmod>' . esc_html( $lastmod ) . '</lastmod>' : ''
 		);
 	}
 	echo '</sitemapindex>';
@@ -183,6 +208,7 @@ function hc_sitemap_terms( string $taxonomy, bool $skip_parents = false ): array
 		return array();
 	}
 	$urls = array();
+	global $wpdb;
 	foreach ( $terms as $term ) {
 		if ( ! ( $term instanceof WP_Term ) ) {
 			continue;
@@ -191,9 +217,22 @@ function hc_sitemap_terms( string $taxonomy, bool $skip_parents = false ): array
 		if ( $skip_parents && 0 === $term->parent ) {
 			continue;
 		}
-		$urls[] = array(
+		// Query lastmod from posts in this term.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$row = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT MAX(p.post_modified_gmt)
+				 FROM {$wpdb->posts} p
+				 INNER JOIN {$wpdb->term_relationships} tr ON p.ID = tr.object_id
+				 INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+				 WHERE tt.term_id = %d AND p.post_status = 'publish'",
+				$term->term_id
+			)
+		);
+		$lastmod = ( is_string( $row ) && '' !== $row ) ? gmdate( 'c', strtotime( $row ) ) : '';
+		$urls[]  = array(
 			'loc'     => (string) get_term_link( $term ),
-			'lastmod' => '',
+			'lastmod' => $lastmod,
 		);
 	}
 	return $urls;
@@ -206,6 +245,11 @@ function hc_sitemap_terms( string $taxonomy, bool $skip_parents = false ): array
  * @return array<int, array{loc: string, lastmod: string}>
  */
 function hc_sitemap_versus(): array {
+	$cached = get_transient( 'hc_sitemap_versus' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+
 	$celebs = get_posts(
 		array(
 			'post_type'      => 'celebrity',
@@ -241,12 +285,24 @@ function hc_sitemap_versus(): array {
 				'lastmod' => '',
 			);
 			if ( count( $urls ) >= 500 ) {
-				return $urls;
+				break 2;
 			}
 		}
 	}
+
+	set_transient( 'hc_sitemap_versus', $urls, 12 * HOUR_IN_SECONDS );
 	return $urls;
 }
+
+/**
+ * Flush the versus sitemap cache when a celebrity post is saved.
+ *
+ * @param int $post_id Post ID.
+ */
+function hc_flush_versus_sitemap_cache( int $post_id ): void {
+	delete_transient( 'hc_sitemap_versus' );
+}
+add_action( 'save_post_celebrity', 'hc_flush_versus_sitemap_cache' );
 
 /**
  * Advertise the sitemap in robots.txt.

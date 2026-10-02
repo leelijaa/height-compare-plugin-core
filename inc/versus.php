@@ -15,7 +15,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const HC_VERSUS_TTL = DAY_IN_SECONDS;
+if ( ! defined( 'HC_VERSUS_TTL' ) ) {
+	define( 'HC_VERSUS_TTL', DAY_IN_SECONDS );
+}
 
 /**
  * Split a versus key into its two celebrity slugs.
@@ -89,8 +91,12 @@ function hc_versus_data( string $key ): ?array {
 		return null;
 	}
 
-	$a = hc_celebrity_data( $post_a );
-	$b = hc_celebrity_data( $post_b );
+	$a = apply_filters( 'hc_celebrity_data', null, $post_a );
+	$b = apply_filters( 'hc_celebrity_data', null, $post_b );
+	if ( ! is_array( $a ) || ! is_array( $b ) ) {
+		$memo[ $key ] = false;
+		return null;
+	}
 
 	$diff   = abs( $a['cm'] - $b['cm'] );
 	$taller = ( $a['cm'] >= $b['cm'] ) ? $a['name'] : $b['name'];

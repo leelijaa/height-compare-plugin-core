@@ -83,6 +83,22 @@ function hc_sanitize_svg_string( string $svg ): string {
 	// Remove data: URIs inside href/src (potential XSS vector for non-images).
 	$svg = preg_replace( '/\s+(?:xlink:)?href\s*=\s*["\']data:(?!image)[^"\']*["\']/i', '', $svg ) ?? $svg;
 
+	// Strip <use> elements with external href (anything other than a same-page #fragment).
+	$svg = preg_replace( '/<use\b[^>]*\s(?:xlink:)?href\s*=\s*(["\'])(?!#)[^>]*>/si', '', $svg ) ?? $svg;
+
+	// Strip url() references in <style> blocks that aren't same-document fragments or data:image URIs.
+	$svg = preg_replace_callback(
+		'/<style[\s\S]*?<\/style>/si',
+		static function ( array $m ): string {
+			return preg_replace(
+				'/url\s*\(\s*["\']?(?!#)(?!data:image)[^)"\'\s][^)"\']*["\']?\s*\)/i',
+				'url(#removed)',
+				$m[0]
+			) ?? $m[0];
+		},
+		$svg
+	) ?? $svg;
+
 	return $svg;
 }
 

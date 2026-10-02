@@ -15,8 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const HC_PRESET_CACHE_GROUP = 'hc_presets_v3_';
-const HC_PRESET_CACHE_TTL   = 15 * MINUTE_IN_SECONDS;
+if ( ! defined( 'HC_PRESET_CACHE_GROUP' ) ) {
+	define( 'HC_PRESET_CACHE_GROUP', 'hc_presets_v3_' );
+}
+if ( ! defined( 'HC_PRESET_CACHE_TTL' ) ) {
+	define( 'HC_PRESET_CACHE_TTL', 15 * MINUTE_IN_SECONDS );
+}
 
 /**
  * Register routes.
@@ -349,9 +353,7 @@ function hc_rest_celebrities( WP_REST_Request $request ): WP_REST_Response {
 	if ( $query->have_posts() ) {
 		while ( $query->have_posts() ) {
 			$query->the_post();
-			ob_start();
-			hc_celebrity_card( get_post() );
-			$cards[] = ob_get_clean();
+			$cards[] = apply_filters( 'hc_celebrity_card_html', '', get_post() );
 		}
 		wp_reset_postdata();
 	}

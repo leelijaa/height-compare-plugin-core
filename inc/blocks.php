@@ -14,5 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action( 'init', 'hc_register_blocks' );
 
 function hc_register_blocks(): void {
-	register_block_type( plugin_dir_path( __DIR__ ) . 'blocks/bio-table' );
+	$bio_table_dir = plugin_dir_path( __DIR__ ) . 'blocks/bio-table';
+	if ( is_dir( $bio_table_dir ) ) {
+		register_block_type( $bio_table_dir );
+	}
 }

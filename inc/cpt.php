@@ -321,7 +321,7 @@ function hc_meta_fields(): array {
 }
 
 /**
- * Sanitize a height value in cm. Accepts 30–30000 (child to skyscraper).
+ * Sanitize a date of birth value (YYYY-MM-DD).
  *
  * @param mixed $value Raw value.
  */

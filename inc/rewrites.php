@@ -176,8 +176,15 @@ function hc_template_router( string $template ): string {
 			status_header( 404 );
 			return get_404_template();
 		}
+		$versus_tpl = apply_filters( 'hc_versus_template_path', '' );
+		if ( '' === $versus_tpl ) {
+			global $wp_query;
+			$wp_query->set_404();
+			status_header( 404 );
+			return get_404_template();
+		}
 		status_header( 200 );
-		return HC_DIR . '/templates/versus.php';
+		return $versus_tpl;
 	}
 
 	return $template;

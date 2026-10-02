@@ -518,6 +518,7 @@ function hc_default_avatars_page_render(): void {
    ───────────────────────────────────────────────────────────────────────────── */
 
 function hc_register_avatar_rest_routes(): void {
+	// __return_true: these are public read-only GET endpoints (no auth required).
 	register_rest_route( 'hc/v1', '/default-avatars', array(
 		'methods'             => WP_REST_Server::READABLE,
 		'callback'            => 'hc_rest_default_avatars',

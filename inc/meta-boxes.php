@@ -45,7 +45,7 @@ function hc_admin_enqueue( string $hook ): void {
 			'hc-celebrity-admin',
 			get_template_directory_uri() . '/assets/css/celebrity-admin.css',
 			array(),
-			HC_VERSION
+			HC_CORE_VERSION
 		);
 
 		// cm / ft sync + height-pair script
@@ -55,7 +55,7 @@ function hc_admin_enqueue( string $hook ): void {
 			'hc-celebrity-admin',
 			get_template_directory_uri() . '/assets/css/celebrity-admin.css',
 			array(),
-			HC_VERSION
+			HC_CORE_VERSION
 		);
 		add_action( 'admin_print_footer_scripts', 'hc_page_faq_js' );
 	} elseif ( array_key_exists( $screen->post_type, hc_meta_fields() ) ) {
@@ -1467,7 +1467,7 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['hc_section_title'] ) )
 			: array();
 		$sec_contents = isset( $_POST['hc_section_content'] ) && is_array( $_POST['hc_section_content'] )
-			? $_POST['hc_section_content']
+			? wp_unslash( $_POST['hc_section_content'] )
 			: array();
 		$hc_page_secs = array();
 		foreach ( $sec_titles as $i => $sec_title ) {

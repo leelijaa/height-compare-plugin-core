@@ -18,6 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'HC_CORE_VERSION' ) ) {
+	define( 'HC_CORE_VERSION', '1.0.0' );
+}
+
 require_once __DIR__ . '/inc/cpt.php';
 require_once __DIR__ . '/inc/avatar-cpt.php';
 require_once __DIR__ . '/inc/rewrites.php';
