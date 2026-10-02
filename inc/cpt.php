@@ -214,13 +214,28 @@ function hc_meta_fields(): array {
 			),
 			'hc_bio_table_rows'    => array(
 				'type'     => 'string',
-				'sanitize' => 'wp_kses_post',
+				'sanitize' => 'hc_sanitize_json_meta',
 				'label'    => 'Bio Table Rows (JSON)',
 			),
 			'hc_page_sections'     => array(
 				'type'     => 'string',
-				'sanitize' => 'wp_kses_post',
+				'sanitize' => 'hc_sanitize_json_meta',
 				'label'    => 'Page Sections (JSON)',
+			),
+			'hc_phys_attrs_rows'   => array(
+				'type'     => 'string',
+				'sanitize' => 'hc_sanitize_json_meta',
+				'label'    => 'Physical Attributes Rows (JSON)',
+			),
+			'hc_family_bg_rows'    => array(
+				'type'     => 'string',
+				'sanitize' => 'hc_sanitize_json_meta',
+				'label'    => 'Family & Background Rows (JSON)',
+			),
+			'hc_career_rows'       => array(
+				'type'     => 'string',
+				'sanitize' => 'hc_sanitize_json_meta',
+				'label'    => 'Career & Financials Rows (JSON)',
 			),
 			'hc_twitter_handle'       => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Handle' ),
 			'hc_twitter_followers'    => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Followers' ),
@@ -328,6 +343,22 @@ function hc_meta_fields(): array {
 function hc_sanitize_dob( $value ): string {
 	$s = sanitize_text_field( (string) $value );
 	return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $s ) ? $s : '';
+}
+
+/**
+ * Sanitize a JSON meta field. Verifies valid JSON, then re-encodes to ensure
+ * canonical formatting. String values within the decoded structure are NOT
+ * HTML-sanitized here — do that at output time with esc_html()/wp_kses_post().
+ *
+ * @param mixed $value Raw value.
+ */
+function hc_sanitize_json_meta( $value ): string {
+	$s       = (string) $value;
+	$decoded = json_decode( $s, true );
+	if ( null === $decoded && JSON_ERROR_NONE !== json_last_error() ) {
+		return '';
+	}
+	return wp_json_encode( $decoded ) ?: '';
 }
 
 function hc_sanitize_height( $value ): float {

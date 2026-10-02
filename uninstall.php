@@ -18,6 +18,11 @@ $options = array(
 	'hc_flush_rewrites_v1130',
 	'hc_removed_pages_v1127',
 	'hc_removed_pages_v1128',
+	// Migration flags — deleted so re-install can re-run them.
+	'hc_slugs_migrated_v1200',
+	'hc_groups_seeded_v1200',
+	'hc_groups_seeded_v1201',
+	'hc_default_avatars_migrated',
 );
 foreach ( $options as $option ) {
 	delete_option( $option );
@@ -26,18 +31,21 @@ foreach ( $options as $option ) {
 // Transients: versus cache, schema taxonomy cache, preset cache.
 global $wpdb;
 $wpdb->query(
-	"DELETE FROM {$wpdb->options}
-	 WHERE option_name LIKE '_transient_hc_%'
-	    OR option_name LIKE '_transient_timeout_hc_%'"
+	$wpdb->prepare(
+		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+		'_transient_hc_%',
+		'_transient_timeout_hc_%'
+	)
 );
 
 // Cron hooks.
 $hooks = array(
-	'hc_daily_age_update',
+	'hc_daily_age_sync', // C-01: was wrong name 'hc_daily_age_update'
 );
 foreach ( $hooks as $hook ) {
 	$timestamp = wp_next_scheduled( $hook );
 	if ( $timestamp ) {
 		wp_unschedule_event( $timestamp, $hook );
 	}
+	remove_action( $hook, 'hc_run_daily_age_sync' );
 }

@@ -76,7 +76,7 @@ add_action( 'init', 'hc_add_rewrite_rules' );
  * @return array<string, mixed>
  */
 function hc_force_sitemap_query( array $vars ): array {
-	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( (string) $_SERVER['REQUEST_URI'] ) : '';
 	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
 	if ( preg_match( '#/sitemap(?:-(pages|celebrities|height-references|countries|blog|versus|celebrity-groups|celebrity-cats))?\.xml$#', $path, $m ) === 1 ) {
 		unset( $vars['sitemap'], $vars['sitemap-subtype'], $vars['sitemap-stylesheet'] );
@@ -136,7 +136,7 @@ function hc_redirect_height_urls(): void {
 	if ( ! is_404() ) {
 		return;
 	}
-	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( (string) $_SERVER['REQUEST_URI'] ) : '';
 	$path = trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' );
 	if ( preg_match( '#^celebrity/([a-z0-9-]+)-height$#', $path, $m ) ) {
 		$posts = get_posts(

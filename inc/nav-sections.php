@@ -322,11 +322,11 @@ function hc_nav_sections_page(): void {
 						<td>
 							<svg viewBox="0 0 24 24" width="22" height="22" fill="none"
 								style="vertical-align:middle;color:#555">
-								<?php echo $icons[ $s['icon'] ] ?? $icons['object']; // phpcs:ignore ?>
+								<?php echo $icons[ $s['icon'] ] ?? $icons['object']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- hardcoded SVG path data, no user input ?>
 							</svg>
 						</td>
 						<td>
-							<?php echo ! empty( $s['built_in'] ) ? '<span style="color:#999">Built-in</span>' : 'Custom'; // phpcs:ignore ?>
+							<?php echo ! empty( $s['built_in'] ) ? '<span style="color:#999">Built-in</span>' : 'Custom'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- hardcoded string, no user input ?>
 						</td>
 						<td>
 							<input type="checkbox" name="hc_ns_enabled[<?php echo esc_attr( $slug ); ?>]"

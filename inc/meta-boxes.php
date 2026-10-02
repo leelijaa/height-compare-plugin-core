@@ -800,21 +800,42 @@ function hc_page_faq_js(): void {
 		function makeRow() {
 			var row = document.createElement('div');
 			row.className = 'hc-faq-row';
-			row.innerHTML =
-				'<div class="hc-faq-row__fields">' +
-					'<div class="hc-cel-tpl__field">' +
-						'<label class="hc-cel-tpl__label"><?php echo $q_label; ?></label>' +
-						'<input class="hc-cel-tpl__input" type="text" name="hc_page_faq_q[]"' +
-							' placeholder="<?php echo $q_ph; ?>">' +
-					'</div>' +
-					'<div class="hc-cel-tpl__field">' +
-						'<label class="hc-cel-tpl__label"><?php echo $a_label; ?></label>' +
-						'<textarea class="hc-cel-tpl__textarea" name="hc_page_faq_a[]" rows="2"' +
-							' placeholder="<?php echo $a_ph; ?>"></textarea>' +
-					'</div>' +
-				'</div>' +
-				'<button type="button" class="hc-faq-remove" aria-label="<?php echo $remove_label; ?>">✕</button>';
-			row.querySelector('.hc-faq-remove').addEventListener('click', function () { row.remove(); });
+			var fields = document.createElement('div');
+			fields.className = 'hc-faq-row__fields';
+			var qField = document.createElement('div');
+			qField.className = 'hc-cel-tpl__field';
+			var qLbl = document.createElement('label');
+			qLbl.className = 'hc-cel-tpl__label';
+			qLbl.textContent = '<?php echo $q_label; ?>';
+			var qInp = document.createElement('input');
+			qInp.className = 'hc-cel-tpl__input';
+			qInp.type = 'text';
+			qInp.name = 'hc_page_faq_q[]';
+			qInp.placeholder = '<?php echo $q_ph; ?>';
+			qField.appendChild(qLbl);
+			qField.appendChild(qInp);
+			var aField = document.createElement('div');
+			aField.className = 'hc-cel-tpl__field';
+			var aLbl = document.createElement('label');
+			aLbl.className = 'hc-cel-tpl__label';
+			aLbl.textContent = '<?php echo $a_label; ?>';
+			var aTxt = document.createElement('textarea');
+			aTxt.className = 'hc-cel-tpl__textarea';
+			aTxt.name = 'hc_page_faq_a[]';
+			aTxt.rows = 2;
+			aTxt.placeholder = '<?php echo $a_ph; ?>';
+			aField.appendChild(aLbl);
+			aField.appendChild(aTxt);
+			fields.appendChild(qField);
+			fields.appendChild(aField);
+			var rmBtn = document.createElement('button');
+			rmBtn.type = 'button';
+			rmBtn.className = 'hc-faq-remove';
+			rmBtn.setAttribute('aria-label', '<?php echo $remove_label; ?>');
+			rmBtn.textContent = '✕';
+			rmBtn.addEventListener('click', function () { row.remove(); });
+			row.appendChild(fields);
+			row.appendChild(rmBtn);
 			return row;
 		}
 
@@ -1016,24 +1037,44 @@ function hc_celebrity_admin_js(): void {
 	function makeFaqRow(q, a) {
 		var row = document.createElement('div');
 		row.className = 'hc-faq-row';
-		row.innerHTML =
-			'<div class="hc-faq-row__fields">' +
-				'<div class="hc-cel-tpl__field">' +
-					'<label class="hc-cel-tpl__label"><?php echo $q_label; ?></label>' +
-					'<input class="hc-cel-tpl__input" type="text" name="hc_faq_q[]"' +
-						' value="' + (q || '').replace(/"/g, '&quot;') + '"' +
-						' placeholder="<?php echo $q_ph; ?>">' +
-				'</div>' +
-				'<div class="hc-cel-tpl__field">' +
-					'<label class="hc-cel-tpl__label"><?php echo $a_label; ?></label>' +
-					'<textarea class="hc-cel-tpl__textarea" name="hc_faq_a[]" rows="2"' +
-						' placeholder="<?php echo $a_ph; ?>">' + (a || '') + '</textarea>' +
-				'</div>' +
-			'</div>' +
-			'<button type="button" class="hc-faq-remove" aria-label="<?php echo $remove_label; ?>">✕</button>';
-		row.querySelector('.hc-faq-remove').addEventListener('click', function() {
-			row.remove();
-		});
+		var fields = document.createElement('div');
+		fields.className = 'hc-faq-row__fields';
+		var qField = document.createElement('div');
+		qField.className = 'hc-cel-tpl__field';
+		var qLbl = document.createElement('label');
+		qLbl.className = 'hc-cel-tpl__label';
+		qLbl.textContent = '<?php echo $q_label; ?>';
+		var qInp = document.createElement('input');
+		qInp.className = 'hc-cel-tpl__input';
+		qInp.type = 'text';
+		qInp.name = 'hc_faq_q[]';
+		qInp.placeholder = '<?php echo $q_ph; ?>';
+		qInp.value = q || '';
+		qField.appendChild(qLbl);
+		qField.appendChild(qInp);
+		var aField = document.createElement('div');
+		aField.className = 'hc-cel-tpl__field';
+		var aLbl = document.createElement('label');
+		aLbl.className = 'hc-cel-tpl__label';
+		aLbl.textContent = '<?php echo $a_label; ?>';
+		var aTxt = document.createElement('textarea');
+		aTxt.className = 'hc-cel-tpl__textarea';
+		aTxt.name = 'hc_faq_a[]';
+		aTxt.rows = 2;
+		aTxt.placeholder = '<?php echo $a_ph; ?>';
+		aTxt.value = a || '';
+		aField.appendChild(aLbl);
+		aField.appendChild(aTxt);
+		fields.appendChild(qField);
+		fields.appendChild(aField);
+		var rmBtn = document.createElement('button');
+		rmBtn.type = 'button';
+		rmBtn.className = 'hc-faq-remove';
+		rmBtn.setAttribute('aria-label', '<?php echo $remove_label; ?>');
+		rmBtn.textContent = '✕';
+		rmBtn.addEventListener('click', function() { row.remove(); });
+		row.appendChild(fields);
+		row.appendChild(rmBtn);
 		return row;
 	}
 
@@ -1471,7 +1512,7 @@ function hc_save_meta( int $post_id, WP_Post $post ): void {
 			: array();
 		$hc_page_secs = array();
 		foreach ( $sec_titles as $i => $sec_title ) {
-			$sec_content = wp_kses_post( wp_unslash( $sec_contents[ $i ] ?? '' ) );
+			$sec_content = wp_kses_post( $sec_contents[ $i ] ?? '' );
 			if ( '' !== trim( $sec_title ) || '' !== trim( $sec_content ) ) {
 				$hc_page_secs[] = array( 'title' => $sec_title, 'content' => $sec_content );
 			}

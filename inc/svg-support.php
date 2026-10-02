@@ -64,6 +64,11 @@ function hc_sanitize_svg_file( string $path ): void {
  * @return string Sanitized SVG string.
  */
 function hc_sanitize_svg_string( string $svg ): string {
+	// Decode HTML entities and percent-encoding before pattern matching so that
+	// encoded payloads like &#106;avascript: or %6Favascript: are caught.
+	$svg = html_entity_decode( $svg, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	$svg = rawurldecode( $svg );
+
 	// Remove PHP processing instructions.
 	$svg = preg_replace( '/<\?php.*?\?>/si', '', $svg ) ?? $svg;
 

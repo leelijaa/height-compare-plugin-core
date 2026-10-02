@@ -59,24 +59,42 @@ function hc_render_sitemap_index(): void {
 
 	// Map child name → post types/taxonomies for lastmod query.
 	$type_map = array(
+		'pages'            => array( 'type' => 'post', 'post_type' => 'page' ),
 		'celebrities'      => array( 'type' => 'post', 'post_type' => 'celebrity' ),
 		'height-references'=> array( 'type' => 'post', 'post_type' => 'height_reference' ),
 		'countries'        => array( 'type' => 'post', 'post_type' => 'country_average' ),
 		'blog'             => array( 'type' => 'post', 'post_type' => 'post' ),
+		'celebrity-groups' => array( 'type' => 'tax', 'taxonomy' => 'celebrity_group' ),
+		'celebrity-cats'   => array( 'type' => 'tax', 'taxonomy' => 'celebrity_cat' ),
 	);
 
 	echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 	foreach ( $children as $child ) {
 		$lastmod = '';
 		if ( isset( $type_map[ $child ] ) ) {
-			$pt = $type_map[ $child ]['post_type'];
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-			$row = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT MAX(post_modified_gmt) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
-					$pt
-				)
-			);
+			$entry = $type_map[ $child ];
+			if ( 'post' === $entry['type'] ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+				$row = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT MAX(post_modified_gmt) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+						$entry['post_type']
+					)
+				);
+			} else {
+				// Taxonomy: find the most-recently-modified post in any term of this taxonomy.
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+				$row = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT MAX(p.post_modified_gmt)
+						 FROM {$wpdb->posts} p
+						 INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+						 INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+						 WHERE tt.taxonomy = %s AND p.post_status = 'publish'",
+						$entry['taxonomy']
+					)
+				);
+			}
 			if ( is_string( $row ) && '' !== $row ) {
 				$lastmod = gmdate( 'c', strtotime( $row ) );
 			}
