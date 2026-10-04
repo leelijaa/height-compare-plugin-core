@@ -287,19 +287,20 @@ function hc_sitemap_versus(): array {
 		)
 	);
 
+	// All celebrities returned already satisfy hc_search_volume >= 100 (enforced by the
+	// meta_query above), so every pair is indexable — no hc_versus_data() call needed.
 	$urls  = array();
 	$count = count( $celebs );
 	for ( $i = 0; $i < $count; $i++ ) {
 		for ( $j = $i + 1; $j < $count; $j++ ) {
 			$slug_a = $celebs[ $i ]->post_name;
 			$slug_b = $celebs[ $j ]->post_name;
-			$key    = $slug_a . '-vs-' . $slug_b;
-			$data   = hc_versus_data( $key );
-			if ( null === $data || ! $data['indexable'] ) {
-				continue;
+			// Canonical direction: alphabetically first slug leads.
+			if ( strcmp( $slug_a, $slug_b ) > 0 ) {
+				[ $slug_a, $slug_b ] = [ $slug_b, $slug_a ];
 			}
 			$urls[] = array(
-				'loc'     => hc_versus_url( $key ),
+				'loc'     => hc_versus_url( $slug_a . '-vs-' . $slug_b ),
 				'lastmod' => '',
 			);
 			if ( count( $urls ) >= 500 ) {
