@@ -237,6 +237,41 @@ function hc_meta_fields(): array {
 				'sanitize' => 'hc_sanitize_json_meta',
 				'label'    => 'Career & Financials Rows (JSON)',
 			),
+			'hc_lede_text'         => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'Lede Text (shown below title)',
+			),
+			'hc_faq_heading'       => array(
+				'type'     => 'string',
+				'sanitize' => 'sanitize_text_field',
+				'label'    => 'FAQ Section Heading',
+			),
+			'hc_faqs'              => array(
+				'type'     => 'string',
+				'sanitize' => 'hc_sanitize_json_meta',
+				'label'    => 'FAQs (JSON)',
+			),
+			'hc_tpl_show_stats'    => array(
+				'type'     => 'boolean',
+				'sanitize' => 'rest_sanitize_boolean',
+				'label'    => 'Show Stats Bar',
+			),
+			'hc_tpl_show_cta'      => array(
+				'type'     => 'boolean',
+				'sanitize' => 'rest_sanitize_boolean',
+				'label'    => 'Show Compare CTA',
+			),
+			'hc_tpl_show_related'  => array(
+				'type'     => 'boolean',
+				'sanitize' => 'rest_sanitize_boolean',
+				'label'    => 'Show Related Celebrities',
+			),
+			'hc_tpl_show_faq'      => array(
+				'type'     => 'boolean',
+				'sanitize' => 'rest_sanitize_boolean',
+				'label'    => 'Show FAQ Section',
+			),
 			'hc_twitter_handle'       => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Handle' ),
 			'hc_twitter_followers'    => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Twitter/X Followers' ),
 			'hc_instagram_handle'     => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'label' => 'Instagram Handle' ),

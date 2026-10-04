@@ -106,6 +106,11 @@ function hc_register_rest_routes(): void {
 					'minimum'           => 0,
 					'sanitize_callback' => 'absint',
 				),
+				'tax' => array(
+					'type'              => 'string',
+					'default'           => '',
+					'sanitize_callback' => 'sanitize_key',
+				),
 			),
 		)
 	);
@@ -338,9 +343,13 @@ function hc_rest_celebrities( WP_REST_Request $request ): WP_REST_Response {
 	);
 
 	if ( $term_id > 0 ) {
+		$taxonomy = sanitize_key( (string) $request->get_param( 'tax' ) );
+		if ( '' === $taxonomy ) {
+			$taxonomy = 'celebrity_group';
+		}
 		$query_args['tax_query'] = array(
 			array(
-				'taxonomy' => 'celebrity_group',
+				'taxonomy' => $taxonomy,
 				'field'    => 'term_id',
 				'terms'    => $term_id,
 			),

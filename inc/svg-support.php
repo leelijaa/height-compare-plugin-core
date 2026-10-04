@@ -78,9 +78,10 @@ function hc_sanitize_svg_string( string $svg ): string {
 	// Remove <foreignObject> (can embed arbitrary HTML).
 	$svg = preg_replace( '/<foreignObject[\s\S]*?<\/foreignObject>/si', '', $svg ) ?? $svg;
 
-	// Remove on* event attributes (double- and single-quoted).
-	$svg = preg_replace( '/\s+on\w+="[^"]*"/i', '', $svg ) ?? $svg;
-	$svg = preg_replace( "/\\s+on\\w+='[^']*'/i", '', $svg ) ?? $svg;
+	// Remove on* event attributes: double-quoted, single-quoted, or unquoted.
+	$svg = preg_replace( '/\s+on\w+\s*=\s*"[^"]*"/i', '', $svg ) ?? $svg;
+	$svg = preg_replace( "/\\s+on\\w+\\s*=\\s*'[^']*'/i", '', $svg ) ?? $svg;
+	$svg = preg_replace( '/\s+on\w+\s*=\s*[^\s"\'<>][^\s<>]*/i', '', $svg ) ?? $svg;
 
 	// Remove javascript: href / xlink:href values.
 	$svg = preg_replace( '/\s+(?:xlink:)?href\s*=\s*["\']javascript:[^"\']*["\']/i', '', $svg ) ?? $svg;

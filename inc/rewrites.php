@@ -168,6 +168,13 @@ function hc_template_router( string $template ): string {
 
 	$versus = get_query_var( 'hc_versus' );
 	if ( is_string( $versus ) && '' !== $versus ) {
+		// Enforce alphabetical slug order as the canonical direction; 301 for reverse.
+		$pair = hc_versus_split( $versus );
+		if ( null !== $pair && strcmp( $pair[0], $pair[1] ) > 0 ) {
+			wp_redirect( hc_versus_url( $pair[1] . '-vs-' . $pair[0] ), 301 );
+			exit;
+		}
+
 		$data = hc_versus_data( $versus );
 		if ( null === $data ) {
 			// Unknown pair: genuine 404.
