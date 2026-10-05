@@ -41,22 +41,31 @@ function hc_admin_enqueue( string $hook ): void {
 	}
 
 	if ( 'celebrity' === $screen->post_type ) {
-		wp_enqueue_style(
-			'hc-celebrity-admin',
-			get_template_directory_uri() . '/assets/css/celebrity-admin.css',
-			array(),
-			HC_CORE_VERSION
-		);
+		// The admin CSS lives in the paired theme; gracefully skip if a different theme is active.
+		$admin_css_path = get_template_directory() . '/assets/css/celebrity-admin.css';
+		$admin_css_uri  = get_template_directory_uri() . '/assets/css/celebrity-admin.css';
+		if ( is_readable( $admin_css_path ) ) {
+			wp_enqueue_style(
+				'hc-celebrity-admin',
+				$admin_css_uri,
+				array(),
+				HC_CORE_VERSION
+			);
+		}
 
 		// cm / ft sync + height-pair script
 		add_action( 'admin_print_footer_scripts', 'hc_celebrity_admin_js' );
 	} elseif ( 'page' === $screen->post_type && hc_is_converter_page( $screen ) ) {
-		wp_enqueue_style(
-			'hc-celebrity-admin',
-			get_template_directory_uri() . '/assets/css/celebrity-admin.css',
-			array(),
-			HC_CORE_VERSION
-		);
+		$admin_css_path2 = get_template_directory() . '/assets/css/celebrity-admin.css';
+		$admin_css_uri2  = get_template_directory_uri() . '/assets/css/celebrity-admin.css';
+		if ( is_readable( $admin_css_path2 ) ) {
+			wp_enqueue_style(
+				'hc-celebrity-admin',
+				$admin_css_uri2,
+				array(),
+				HC_CORE_VERSION
+			);
+		}
 		add_action( 'admin_print_footer_scripts', 'hc_page_faq_js' );
 	} elseif ( array_key_exists( $screen->post_type, hc_meta_fields() ) ) {
 		// Classic dual-input sync for height_reference / country_average

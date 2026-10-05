@@ -68,37 +68,48 @@ function hc_render_sitemap_index(): void {
 		'celebrity-cats'   => array( 'type' => 'tax', 'taxonomy' => 'celebrity_cat' ),
 	);
 
+	// Cache lastmod data for 1 hour.
+	$lastmods = get_transient( 'hc_sitemap_index_lastmods' );
+	if ( ! is_array( $lastmods ) ) {
+		$lastmods = array();
+		foreach ( $children as $child ) {
+			$lastmod = '';
+			if ( isset( $type_map[ $child ] ) ) {
+				$entry = $type_map[ $child ];
+				if ( 'post' === $entry['type'] ) {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+					$row = $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT MAX(post_modified_gmt) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+							$entry['post_type']
+						)
+					);
+				} else {
+					// Taxonomy: find the most-recently-modified post in any term of this taxonomy.
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+					$row = $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT MAX(p.post_modified_gmt)
+							 FROM {$wpdb->posts} p
+							 INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
+							 INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+							 WHERE tt.taxonomy = %s AND p.post_status = 'publish'",
+							$entry['taxonomy']
+						)
+					);
+				}
+				if ( is_string( $row ) && '' !== $row ) {
+					$lastmod = gmdate( 'c', strtotime( $row ) );
+				}
+			}
+			$lastmods[ $child ] = $lastmod;
+		}
+		set_transient( 'hc_sitemap_index_lastmods', $lastmods, HOUR_IN_SECONDS );
+	}
+
 	echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 	foreach ( $children as $child ) {
-		$lastmod = '';
-		if ( isset( $type_map[ $child ] ) ) {
-			$entry = $type_map[ $child ];
-			if ( 'post' === $entry['type'] ) {
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-				$row = $wpdb->get_var(
-					$wpdb->prepare(
-						"SELECT MAX(post_modified_gmt) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
-						$entry['post_type']
-					)
-				);
-			} else {
-				// Taxonomy: find the most-recently-modified post in any term of this taxonomy.
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-				$row = $wpdb->get_var(
-					$wpdb->prepare(
-						"SELECT MAX(p.post_modified_gmt)
-						 FROM {$wpdb->posts} p
-						 INNER JOIN {$wpdb->term_relationships} tr ON tr.object_id = p.ID
-						 INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
-						 WHERE tt.taxonomy = %s AND p.post_status = 'publish'",
-						$entry['taxonomy']
-					)
-				);
-			}
-			if ( is_string( $row ) && '' !== $row ) {
-				$lastmod = gmdate( 'c', strtotime( $row ) );
-			}
-		}
+		$lastmod = $lastmods[ $child ] ?? '';
 		printf(
 			"<sitemap><loc>%s</loc>%s</sitemap>\n",
 			esc_url( home_url( '/sitemap-' . $child . '.xml' ) ),
@@ -106,6 +117,16 @@ function hc_render_sitemap_index(): void {
 		);
 	}
 	echo '</sitemapindex>';
+}
+
+/**
+ * Flush the sitemap index lastmod cache when posts/terms change.
+ */
+add_action( 'save_post', 'hc_flush_sitemap_index_cache' );
+add_action( 'delete_post', 'hc_flush_sitemap_index_cache' );
+add_action( 'edited_term', 'hc_flush_sitemap_index_cache' );
+function hc_flush_sitemap_index_cache(): void {
+	delete_transient( 'hc_sitemap_index_lastmods' );
 }
 
 /**
@@ -147,6 +168,16 @@ function hc_sitemap_urls( string $name ): array {
 			$celeb_archive = get_post_type_archive_link( 'celebrity' );
 			if ( is_string( $celeb_archive ) && '' !== $celeb_archive ) {
 				$urls[] = array( 'loc' => $celeb_archive, 'lastmod' => '' );
+			}
+			$blog_page_id = (int) get_option( 'page_for_posts' );
+			if ( $blog_page_id > 0 ) {
+				$blog_permalink = get_permalink( $blog_page_id );
+				if ( is_string( $blog_permalink ) && '' !== $blog_permalink ) {
+					$urls[] = array(
+						'loc'     => $blog_permalink,
+						'lastmod' => get_post_modified_time( 'c', true, $blog_page_id ) ?: '',
+					);
+				}
 			}
 			break;
 
@@ -298,10 +329,17 @@ function hc_sitemap_versus(): array {
 			// Canonical direction: alphabetically first slug leads.
 			if ( strcmp( $slug_a, $slug_b ) > 0 ) {
 				[ $slug_a, $slug_b ] = [ $slug_b, $slug_a ];
+				// Swap i and j references for lastmod computation.
+				$mod_a = strtotime( $celebs[ $j ]->post_modified_gmt );
+				$mod_b = strtotime( $celebs[ $i ]->post_modified_gmt );
+			} else {
+				$mod_a = strtotime( $celebs[ $i ]->post_modified_gmt );
+				$mod_b = strtotime( $celebs[ $j ]->post_modified_gmt );
 			}
+			$lastmod = gmdate( 'c', max( (int) $mod_a, (int) $mod_b ) );
 			$urls[] = array(
 				'loc'     => hc_versus_url( $slug_a . '-vs-' . $slug_b ),
-				'lastmod' => '',
+				'lastmod' => $lastmod,
 			);
 			if ( count( $urls ) >= 500 ) {
 				break 2;
@@ -334,3 +372,18 @@ function hc_robots_txt( string $output ): string {
 	return $output;
 }
 add_filter( 'robots_txt', 'hc_robots_txt' );
+
+/**
+ * Ping Google's sitemap endpoint when a celebrity or post is published/updated.
+ */
+function hc_ping_sitemap_on_publish( int $post_id ): void {
+	// Rate-limit: only ping once per 23 hours.
+	if ( get_transient( 'hc_sitemap_pinged' ) ) {
+		return;
+	}
+	$sitemap_url = home_url( '/sitemap.xml' );
+	wp_safe_remote_get( 'https://www.google.com/ping?sitemap=' . rawurlencode( $sitemap_url ), array( 'timeout' => 3, 'blocking' => false ) );
+	set_transient( 'hc_sitemap_pinged', 1, 23 * HOUR_IN_SECONDS );
+}
+add_action( 'publish_celebrity', 'hc_ping_sitemap_on_publish' );
+add_action( 'publish_post', 'hc_ping_sitemap_on_publish' );

@@ -401,7 +401,7 @@ function hc_sanitize_height( $value ): float {
 	if ( $v < 1.0 ) {
 		return 0.0;
 	}
-	return round( min( $v, 30000.0 ), 1 );
+	return round( min( $v, 300.0 ), 1 );
 }
 
 /**
@@ -694,6 +694,10 @@ function hc_assign_age_group( int $post_id ): void {
 		if ( is_wp_error( $result ) ) {
 			return;
 		}
+		if ( ! is_wp_error( $result ) ) {
+			$new_term_id = is_array( $result ) ? $result['term_id'] : $result;
+			update_term_meta( (int) $new_term_id, 'hc_auto_term', '1' );
+		}
 		$term = get_term( (int) $result['term_id'], 'celebrity_group' );
 	}
 	if ( ! $term instanceof WP_Term ) {
@@ -759,6 +763,10 @@ function hc_assign_height_group( int $post_id ): void {
 		if ( is_wp_error( $result ) ) {
 			return;
 		}
+		if ( ! is_wp_error( $result ) ) {
+			$new_term_id = is_array( $result ) ? $result['term_id'] : $result;
+			update_term_meta( (int) $new_term_id, 'hc_auto_term', '1' );
+		}
 		$term = get_term( (int) $result['term_id'], 'celebrity_group' );
 	}
 	if ( ! $term instanceof WP_Term ) {
@@ -796,6 +804,11 @@ add_action( 'init', 'hc_schedule_daily_age_sync' );
  * On each celebrity's birthday the old age term is swapped for the new one automatically.
  */
 function hc_run_daily_age_sync(): void {
+	if ( get_transient( 'hc_age_sync_lock' ) ) {
+		return;
+	}
+	set_transient( 'hc_age_sync_lock', 1, 5 * MINUTE_IN_SECONDS );
+
 	$posts = get_posts(
 		array(
 			'post_type'      => 'celebrity',
@@ -813,5 +826,24 @@ function hc_run_daily_age_sync(): void {
 	foreach ( $posts as $post_id ) {
 		hc_assign_age_group( (int) $post_id );
 	}
+
+	delete_transient( 'hc_age_sync_lock' );
 }
 add_action( 'hc_daily_age_sync', 'hc_run_daily_age_sync' );
+
+/**
+ * Prevent celebrity slugs from containing '-vs-' (conflicts with versus URL pattern).
+ *
+ * @param string $slug      Generated slug.
+ * @param int    $post_id   Post ID.
+ * @param string $status    Post status.
+ * @param string $post_type Post type.
+ * @return string
+ */
+add_filter( 'wp_unique_post_slug', 'hc_sanitize_celebrity_slug', 10, 4 );
+function hc_sanitize_celebrity_slug( string $slug, int $post_id, string $status, string $post_type ): string {
+	if ( 'celebrity' === $post_type && str_contains( $slug, '-vs-' ) ) {
+		$slug = str_replace( '-vs-', '-versus-', $slug );
+	}
+	return $slug;
+}

@@ -138,20 +138,48 @@ function hc_redirect_height_urls(): void {
 	}
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( (string) $_SERVER['REQUEST_URI'] ) : '';
 	$path = trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' );
-	if ( preg_match( '#^celebrity/([a-z0-9-]+)-height$#', $path, $m ) ) {
-		$posts = get_posts(
-			array(
-				'post_type'      => 'celebrity',
-				'name'           => $m[1],
-				'post_status'    => 'publish',
-				'posts_per_page' => 1,
-			)
-		);
-		if ( ! empty( $posts ) ) {
-			wp_safe_redirect( (string) get_permalink( $posts[0] ), 301 );
+
+	// Only process /celebrity/... paths.
+	if ( ! str_starts_with( $path, 'celebrity/' ) ) {
+		return;
+	}
+
+	$slug_part = substr( $path, strlen( 'celebrity/' ) );
+	// Slug sanity check: allow only alphanumeric, hyphens, forward slashes.
+	if ( ! preg_match( '/^[a-z0-9\-\/]+$/', $slug_part ) ) {
+		return;
+	}
+
+	if ( ! preg_match( '#^celebrity/([a-z0-9-]+)-height$#', $path, $m ) ) {
+		return;
+	}
+
+	// Memo cache: avoid re-querying the same bad slug.
+	$cache_key = 'hc_404_slug_' . md5( $m[1] );
+	$cached    = wp_cache_get( $cache_key, 'hc_redirects' );
+	if ( false !== $cached ) {
+		if ( '' !== $cached ) {
+			wp_redirect( $cached, 301 );
 			exit;
 		}
+		return; // Known 404.
 	}
+
+	$posts = get_posts(
+		array(
+			'post_type'      => 'celebrity',
+			'name'           => $m[1],
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+		)
+	);
+	if ( ! empty( $posts ) ) {
+		$redirect_url = (string) get_permalink( $posts[0] );
+		wp_cache_set( $cache_key, $redirect_url, 'hc_redirects', HOUR_IN_SECONDS );
+		wp_safe_redirect( $redirect_url, 301 );
+		exit;
+	}
+	wp_cache_set( $cache_key, '', 'hc_redirects', HOUR_IN_SECONDS );
 }
 add_action( 'template_redirect', 'hc_redirect_height_urls' );
 
