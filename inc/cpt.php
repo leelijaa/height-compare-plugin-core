@@ -694,10 +694,7 @@ function hc_assign_age_group( int $post_id ): void {
 		if ( is_wp_error( $result ) ) {
 			return;
 		}
-		if ( ! is_wp_error( $result ) ) {
-			$new_term_id = is_array( $result ) ? $result['term_id'] : $result;
-			update_term_meta( (int) $new_term_id, 'hc_auto_term', '1' );
-		}
+		update_term_meta( (int) $result['term_id'], 'hc_auto_term', '1' );
 		$term = get_term( (int) $result['term_id'], 'celebrity_group' );
 	}
 	if ( ! $term instanceof WP_Term ) {

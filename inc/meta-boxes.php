@@ -88,6 +88,10 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 	$cm          = (float) get_post_meta( $post->ID, 'hc_height_cm', true );
 	$ft_val      = ( $cm > 0 ) ? (int) floor( $cm / 30.48 ) : 0;
 	$in_val      = ( $cm > 0 ) ? round( fmod( $cm, 30.48 ) / 2.54, 1 ) : 0.0;
+	if ( $in_val >= 12.0 ) { // guard for rounding edge (e.g. 182.88 cm)
+		++$ft_val;
+		$in_val = 0.0;
+	}
 	$gender      = (string) ( get_post_meta( $post->ID, 'hc_gender', true ) ?: 'male' );
 	$country     = (string) get_post_meta( $post->ID, 'hc_country', true );
 	$cat         = (string) get_post_meta( $post->ID, 'hc_category', true );

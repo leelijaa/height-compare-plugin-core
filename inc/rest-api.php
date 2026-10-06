@@ -344,7 +344,7 @@ function hc_rest_celebrities( WP_REST_Request $request ): WP_REST_Response {
 
 	if ( $term_id > 0 ) {
 		$taxonomy = sanitize_key( (string) $request->get_param( 'tax' ) );
-		if ( '' === $taxonomy ) {
+		if ( ! in_array( $taxonomy, array( 'celebrity_group', 'celebrity_cat' ), true ) ) {
 			$taxonomy = 'celebrity_group';
 		}
 		$query_args['tax_query'] = array(

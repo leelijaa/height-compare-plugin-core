@@ -135,12 +135,25 @@ function hc_flush_sitemap_index_cache(): void {
  * @param string $name Child name.
  */
 function hc_render_sitemap_urlset( string $name ): void {
+	$changefreq_map = array(
+		'pages'            => 'daily',
+		'celebrities'      => 'weekly',
+		'height-references'=> 'monthly',
+		'countries'        => 'monthly',
+		'blog'             => 'weekly',
+		'versus'           => 'monthly',
+		'celebrity-groups' => 'weekly',
+		'celebrity-cats'   => 'weekly',
+	);
+	$changefreq = $changefreq_map[ $name ] ?? '';
+
 	echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 	foreach ( hc_sitemap_urls( $name ) as $url ) {
 		printf(
-			"<url><loc>%s</loc>%s</url>\n",
+			"<url><loc>%s</loc>%s%s</url>\n",
 			esc_url( $url['loc'] ),
-			'' !== $url['lastmod'] ? '<lastmod>' . esc_html( $url['lastmod'] ) . '</lastmod>' : ''
+			'' !== $url['lastmod'] ? '<lastmod>' . esc_html( $url['lastmod'] ) . '</lastmod>' : '',
+			'' !== $changefreq ? '<changefreq>' . esc_html( $changefreq ) . '</changefreq>' : ''
 		);
 	}
 	echo '</urlset>';
@@ -157,7 +170,18 @@ function hc_sitemap_urls( string $name ): array {
 
 	switch ( $name ) {
 		case 'pages':
-			$urls[] = array( 'loc' => home_url( '/' ), 'lastmod' => '' );
+			// Homepage lastmod: most-recently-modified celebrity post.
+			global $wpdb;
+			$hc_home_raw = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->prepare(
+					"SELECT MAX(post_modified_gmt) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
+					'celebrity'
+				)
+			);
+			$hc_home_lastmod = ( is_string( $hc_home_raw ) && '' !== $hc_home_raw )
+				? gmdate( 'c', strtotime( $hc_home_raw ) )
+				: '';
+			$urls[] = array( 'loc' => home_url( '/' ), 'lastmod' => $hc_home_lastmod );
 			$hc_converter = get_page_by_path( 'height-converter' );
 			if ( $hc_converter instanceof WP_Post ) {
 				$urls[] = array(
