@@ -806,11 +806,15 @@ function hc_run_daily_age_sync(): void {
 	}
 	set_transient( 'hc_age_sync_lock', 1, 5 * MINUTE_IN_SECONDS );
 
+	$batch_size = 100;
+	$offset     = (int) get_transient( 'hc_age_sync_offset' );
+
 	$posts = get_posts(
 		array(
 			'post_type'      => 'celebrity',
 			'post_status'    => 'publish',
-			'posts_per_page' => -1,
+			'posts_per_page' => $batch_size,
+			'offset'         => $offset,
 			'fields'         => 'ids',
 			'meta_query'     => array(
 				array(
@@ -822,6 +826,14 @@ function hc_run_daily_age_sync(): void {
 	);
 	foreach ( $posts as $post_id ) {
 		hc_assign_age_group( (int) $post_id );
+	}
+
+	if ( count( $posts ) === $batch_size ) {
+		// More records remain; advance offset for the next cron tick.
+		set_transient( 'hc_age_sync_offset', $offset + $batch_size, DAY_IN_SECONDS );
+	} else {
+		// Full sweep complete; reset for the next day.
+		delete_transient( 'hc_age_sync_offset' );
 	}
 
 	delete_transient( 'hc_age_sync_lock' );

@@ -147,13 +147,27 @@ function hc_render_sitemap_urlset( string $name ): void {
 	);
 	$changefreq = $changefreq_map[ $name ] ?? '';
 
-	echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+	$image_ns = 'celebrities' === $name
+		? ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"'
+		: '';
+	echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . $image_ns . '>' . "\n";
 	foreach ( hc_sitemap_urls( $name ) as $url ) {
+		$image_tag = '';
+		if ( isset( $url['image_loc'] ) && '' !== $url['image_loc'] ) {
+			$image_tag = sprintf(
+				'<image:image><image:loc>%s</image:loc>%s</image:image>',
+				esc_url( $url['image_loc'] ),
+				( isset( $url['image_title'] ) && '' !== $url['image_title'] )
+					? '<image:title>' . esc_html( $url['image_title'] ) . '</image:title>'
+					: ''
+			);
+		}
 		printf(
-			"<url><loc>%s</loc>%s%s</url>\n",
+			"<url><loc>%s</loc>%s%s%s</url>\n",
 			esc_url( $url['loc'] ),
 			'' !== $url['lastmod'] ? '<lastmod>' . esc_html( $url['lastmod'] ) . '</lastmod>' : '',
-			'' !== $changefreq ? '<changefreq>' . esc_html( $changefreq ) . '</changefreq>' : ''
+			'' !== $changefreq ? '<changefreq>' . esc_html( $changefreq ) . '</changefreq>' : '',
+			$image_tag
 		);
 	}
 	echo '</urlset>';
@@ -248,17 +262,28 @@ function hc_sitemap_posts( string $post_type ): array {
 		array(
 			'post_type'      => $post_type,
 			'post_status'    => 'publish',
-			'posts_per_page' => -1,
+			'posts_per_page' => 5000,
 			'orderby'        => 'modified',
 			'order'          => 'DESC',
 		)
 	);
 	$urls = array();
 	foreach ( $posts as $post ) {
-		$urls[] = array(
+		$entry = array(
 			'loc'     => (string) get_permalink( $post ),
 			'lastmod' => get_post_modified_time( 'c', true, $post ) ?: '',
 		);
+		if ( 'celebrity' === $post_type ) {
+			$thumb_id = get_post_thumbnail_id( $post );
+			if ( $thumb_id ) {
+				$thumb = wp_get_attachment_image_src( $thumb_id, 'large' );
+				if ( is_array( $thumb ) && '' !== $thumb[0] ) {
+					$entry['image_loc']   = $thumb[0];
+					$entry['image_title'] = get_the_title( $post );
+				}
+			}
+		}
+		$urls[] = $entry;
 	}
 	return $urls;
 }
