@@ -231,6 +231,39 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 		) );
 	}
 
+	// For brand-new celebrities (no saved data and no individual meta), seed
+	// the repeater with the default set of row labels so the editor can fill
+	// in values and remove rows they don't need.
+	if ( empty( $bio_table_rows ) ) {
+		$bio_table_rows = array(
+			array( 'Birth Name',      '' ),
+			array( 'Full Name',       '' ),
+			array( 'Nickname',        '' ),
+			array( 'Profession',      '' ),
+			array( 'Birthday',        '' ),
+			array( 'Birth Sign',      '' ),
+			array( 'Birthplace',      '' ),
+			array( 'Age',             '' ),
+			array( 'School',          '' ),
+			array( 'College',         '' ),
+			array( "Father's Name",   '' ),
+			array( "Mother's Name",   '' ),
+			array( 'Siblings',        '' ),
+			array( 'Marital Status',  '' ),
+			array( 'Girlfriend',      '' ),
+			array( 'Wife',            '' ),
+			array( 'Children',        '' ),
+			array( 'Friends',         '' ),
+			array( 'Religion',        '' ),
+			array( 'Hometown',        '' ),
+			array( 'Current Address', '' ),
+			array( 'Hobbies',         '' ),
+			array( 'Net Worth',       '' ),
+			array( 'Monthly Earning', '' ),
+			array( 'Awards',          '' ),
+		);
+	}
+
 	// Custom page sections (JSON).
 	$page_sections_json = get_post_meta( $post->ID, 'hc_page_sections', true );
 	$page_sections = ! empty( $page_sections_json ) ? json_decode( $page_sections_json, true ) ?: array() : array();
@@ -348,6 +381,19 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 			<div class="hc-cel-tpl__grid">
 
 				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
+					<label class="hc-cel-tpl__label">
+						<?php esc_html_e( 'Physical Attributes — Paragraph', 'height-compare' ); ?>
+						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown below the attributes on the celebrity page', 'height-compare' ); ?></span>
+					</label>
+					<?php wp_editor( $physical_attrs_para, 'hcphysattrspara', array(
+						'textarea_name' => 'hc_physical_attributes_para',
+						'media_buttons' => false,
+						'textarea_rows' => 5,
+						'tinymce'       => array( 'toolbar1' => 'bold italic link unlink | undo redo' ),
+					) ); ?>
+				</div>
+
+				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
 					<label class="hc-cel-tpl__label"><?php esc_html_e( 'Attribute Rows', 'height-compare' ); ?></label>
 					<div id="hc-phys-attrs-list" class="hc-repeater-list">
 						<?php foreach ( $phys_attrs_rows as $hc_par ) :
@@ -370,19 +416,6 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 					<button type="button" id="hc-phys-attr-add" class="button" style="margin-top:8px">
 						<?php esc_html_e( '+ Add Row', 'height-compare' ); ?>
 					</button>
-				</div>
-
-				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
-					<label class="hc-cel-tpl__label">
-						<?php esc_html_e( 'Physical Attributes — Paragraph', 'height-compare' ); ?>
-						<span class="hc-cel-tpl__hint"><?php esc_html_e( 'Shown below the attributes on the celebrity page', 'height-compare' ); ?></span>
-					</label>
-					<?php wp_editor( $physical_attrs_para, 'hcphysattrspara', array(
-						'textarea_name' => 'hc_physical_attributes_para',
-						'media_buttons' => false,
-						'textarea_rows' => 5,
-						'tinymce'       => array( 'toolbar1' => 'bold italic link unlink | undo redo' ),
-					) ); ?>
 				</div>
 
 			</div>
@@ -539,40 +572,6 @@ function hc_celebrity_edit_template( WP_Post $post ): void {
 						placeholder="<?php echo esc_attr( $sm_cfg['ph'] ); ?>">
 				</div>
 				<?php endforeach; ?>
-
-			</div>
-		</div>
-
-		<!-- ── Section: SEO ────────────────────────────────────────────── -->
-		<div class="hc-cel-tpl__section">
-			<div class="hc-cel-tpl__section-head">
-				<span class="hc-cel-tpl__icon">🔍</span>
-				<h2 class="hc-cel-tpl__section-title"><?php esc_html_e( 'SEO', 'height-compare' ); ?></h2>
-			</div>
-			<div class="hc-cel-tpl__grid">
-
-				<div class="hc-cel-tpl__field hc-cel-tpl__field--full">
-					<label class="hc-cel-tpl__label" for="hc_source_url">
-						<?php esc_html_e( 'Source URL', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="url"
-						name="hc_source_url" id="hc_source_url"
-						value="<?php echo esc_attr( $source ); ?>"
-						placeholder="https://…">
-				</div>
-
-				<div class="hc-cel-tpl__field">
-					<label class="hc-cel-tpl__label" for="hc_search_volume">
-						<?php esc_html_e( 'Monthly Search Volume', 'height-compare' ); ?>
-					</label>
-					<input class="hc-cel-tpl__input" type="number" min="0"
-						name="hc_search_volume" id="hc_search_volume"
-						value="<?php echo esc_attr( $volume > 0 ? (string) $volume : '' ); ?>"
-						placeholder="0">
-					<p class="hc-cel-tpl__desc">
-						<?php esc_html_e( 'Versus pages are indexed when ≥ 100', 'height-compare' ); ?>
-					</p>
-				</div>
 
 			</div>
 		</div>
@@ -1294,6 +1293,93 @@ function hc_celebrity_admin_js(): void {
 			setTimeout(function () { initSecEditor(edId); }, 50);
 			wireRemove(block);
 		});
+	})();
+
+	/* ── Section reorder (▲▼ buttons on all sections except Hero) ─── */
+	(function () {
+		var tpl = document.querySelector('.hc-cel-tpl');
+		if (!tpl) return;
+
+		// Inject move buttons into every section except the first (Hero)
+		var allSecs = Array.from(tpl.querySelectorAll(':scope > .hc-cel-tpl__section'));
+		allSecs.forEach(function (sec, idx) {
+			if (idx === 0) return;
+			sec.dataset.moveable = '1';
+			var head = sec.querySelector('.hc-cel-tpl__section-head');
+			if (!head) return;
+			var wrap = document.createElement('div');
+			wrap.className = 'hc-section-move';
+			wrap.innerHTML =
+				'<button type="button" class="hc-move-up"   title="Move section up">▲</button>' +
+				'<button type="button" class="hc-move-down" title="Move section down">▼</button>';
+			head.appendChild(wrap);
+		});
+
+		function getMoveable() {
+			return Array.from(tpl.querySelectorAll(':scope > .hc-cel-tpl__section[data-moveable]'));
+		}
+
+		// Save TinyMCE content to textarea and remove the editor instance.
+		// Returns array of editor IDs that were removed.
+		function detachTmce(sec) {
+			if (!window.tinymce) return [];
+			var ids = [];
+			sec.querySelectorAll('textarea').forEach(function (ta) {
+				if (!ta.id) return;
+				var ed = tinymce.get(ta.id);
+				if (!ed) return;
+				ed.save();
+				tinymce.remove('#' + ta.id);
+				ids.push(ta.id);
+			});
+			return ids;
+		}
+
+		// Re-initialize TinyMCE instances after DOM move.
+		function reattachTmce(ids) {
+			if (!window.tinymce || !window.tinyMCEPreInit) return;
+			ids.forEach(function (id) {
+				var cfg = (tinyMCEPreInit.mceInit || {})[id];
+				if (cfg) { setTimeout(function () { tinymce.init(cfg); }, 80); }
+			});
+		}
+
+		function updateButtons() {
+			var secs = getMoveable();
+			secs.forEach(function (sec, i) {
+				var up   = sec.querySelector('.hc-move-up');
+				var down = sec.querySelector('.hc-move-down');
+				if (up)   up.disabled   = (i === 0);
+				if (down) down.disabled = (i === secs.length - 1);
+			});
+		}
+
+		tpl.addEventListener('click', function (e) {
+			var btn = e.target.closest('.hc-move-up, .hc-move-down');
+			if (!btn) return;
+			var sec = btn.closest('.hc-cel-tpl__section[data-moveable]');
+			if (!sec) return;
+
+			var secs   = getMoveable();
+			var idx    = secs.indexOf(sec);
+			var isUp   = btn.classList.contains('hc-move-up');
+			var swapIdx = isUp ? idx - 1 : idx + 1;
+			if (swapIdx < 0 || swapIdx >= secs.length) return;
+
+			var sibling = secs[swapIdx];
+			var ids = detachTmce(sec).concat(detachTmce(sibling));
+
+			if (isUp) {
+				tpl.insertBefore(sec, sibling);
+			} else {
+				tpl.insertBefore(sec, sibling.nextSibling);
+			}
+
+			reattachTmce(ids);
+			updateButtons();
+		});
+
+		updateButtons();
 	})();
 	</script>
 	<?php

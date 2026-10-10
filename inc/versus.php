@@ -47,13 +47,11 @@ function hc_versus_split( string $key ): ?array {
  * @param string $slug Base slug.
  */
 function hc_find_celebrity( string $slug ): ?WP_Post {
-	foreach ( array( $slug . '-height', $slug ) as $candidate ) {
-		$post = get_page_by_path( $candidate, OBJECT, 'celebrity' );
-		if ( $post instanceof WP_Post ) {
-			return $post;
-		}
+	$post = get_page_by_path( $slug, OBJECT, 'celebrity' );
+	if ( $post instanceof WP_Post ) {
+		return $post;
 	}
-	return null;
+	return get_page_by_path( $slug . '-height', OBJECT, 'celebrity' );
 }
 
 /**

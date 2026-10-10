@@ -184,6 +184,22 @@ function hc_redirect_height_urls(): void {
 add_action( 'template_redirect', 'hc_redirect_height_urls' );
 
 /**
+ * Flush the slug-existence transient when a celebrity is saved or deleted.
+ * Prevents stale 'no' entries blocking access to renamed or newly-published posts.
+ *
+ * @param int $post_id Post ID.
+ */
+function hc_flush_slug_transient( int $post_id ): void {
+	$post = get_post( $post_id );
+	if ( ! ( $post instanceof WP_Post ) || 'celebrity' !== $post->post_type ) {
+		return;
+	}
+	delete_transient( 'hc_celeb_slug_' . md5( $post->post_name ) );
+}
+add_action( 'save_post_celebrity', 'hc_flush_slug_transient' );
+add_action( 'before_delete_post',  'hc_flush_slug_transient' );
+
+/**
  * Route versus + sitemap requests to their handlers/templates.
  *
  * @param string $template Resolved template path.

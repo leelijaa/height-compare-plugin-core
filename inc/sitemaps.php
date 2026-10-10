@@ -226,7 +226,7 @@ function hc_sitemap_urls( string $name ): array {
 			break;
 
 		case 'celebrity-groups':
-			$urls = hc_sitemap_terms( 'celebrity_group', true );
+			$urls = hc_sitemap_terms( 'celebrity_group' );
 			break;
 
 		case 'celebrity-cats':
@@ -397,17 +397,3 @@ function hc_robots_txt( string $output ): string {
 }
 add_filter( 'robots_txt', 'hc_robots_txt' );
 
-/**
- * Ping Google's sitemap endpoint when a celebrity or post is published/updated.
- */
-function hc_ping_sitemap_on_publish( int $post_id ): void {
-	// Rate-limit: only ping once per 23 hours.
-	if ( get_transient( 'hc_sitemap_pinged' ) ) {
-		return;
-	}
-	$sitemap_url = home_url( '/sitemap.xml' );
-	wp_safe_remote_get( 'https://www.google.com/ping?sitemap=' . rawurlencode( $sitemap_url ), array( 'timeout' => 3, 'blocking' => false ) );
-	set_transient( 'hc_sitemap_pinged', 1, 23 * HOUR_IN_SECONDS );
-}
-add_action( 'publish_celebrity', 'hc_ping_sitemap_on_publish' );
-add_action( 'publish_post', 'hc_ping_sitemap_on_publish' );
