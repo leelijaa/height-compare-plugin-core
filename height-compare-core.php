@@ -52,3 +52,11 @@ register_activation_hook(
 		flush_rewrite_rules();
 	}
 );
+
+register_deactivation_hook(
+	__FILE__,
+	static function (): void {
+		wp_clear_scheduled_hook( 'hc_daily_age_sync' );
+		flush_rewrite_rules();
+	}
+);

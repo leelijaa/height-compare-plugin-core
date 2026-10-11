@@ -127,6 +127,10 @@ add_action( 'delete_post', 'hc_flush_sitemap_index_cache' );
 add_action( 'edited_term', 'hc_flush_sitemap_index_cache' );
 function hc_flush_sitemap_index_cache(): void {
 	delete_transient( 'hc_sitemap_index_lastmods' );
+	delete_transient( 'hc_sitemap_terms_celebrity_group' );
+	delete_transient( 'hc_sitemap_terms_celebrity_group_nohubs' );
+	delete_transient( 'hc_sitemap_terms_celebrity_cat' );
+	delete_transient( 'hc_sitemap_terms_celebrity_cat_nohubs' );
 }
 
 /**
@@ -217,6 +221,29 @@ function hc_sitemap_urls( string $name ): array {
 					);
 				}
 			}
+			// Append all other published pages (exclude front page and blog page to avoid duplicates).
+			$hc_front_page_id = (int) get_option( 'page_on_front' );
+			$hc_exclude       = array_filter( array( $hc_front_page_id, $blog_page_id ) );
+			$hc_pages = get_posts(
+				array(
+					'post_type'      => 'page',
+					'post_status'    => 'publish',
+					'posts_per_page' => 500,
+					'exclude'        => $hc_exclude,
+					'orderby'        => 'modified',
+					'order'          => 'DESC',
+				)
+			);
+			foreach ( $hc_pages as $hc_page ) {
+				$hc_permalink = get_permalink( $hc_page );
+				if ( ! is_string( $hc_permalink ) || '' === $hc_permalink ) {
+					continue;
+				}
+				$urls[] = array(
+					'loc'     => $hc_permalink,
+					'lastmod' => get_post_modified_time( 'c', true, $hc_page ) ?: '',
+				);
+			}
 			break;
 
 		case 'celebrities':
@@ -295,6 +322,12 @@ function hc_sitemap_posts( string $post_type ): array {
  * @return array<int, array{loc: string, lastmod: string}>
  */
 function hc_sitemap_terms( string $taxonomy, bool $skip_parents = false ): array {
+	$cache_key = 'hc_sitemap_terms_' . $taxonomy . ( $skip_parents ? '_nohubs' : '' );
+	$cached    = get_transient( $cache_key );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+
 	$terms = get_terms(
 		array(
 			'taxonomy'   => $taxonomy,
@@ -333,6 +366,8 @@ function hc_sitemap_terms( string $taxonomy, bool $skip_parents = false ): array
 			'lastmod' => $lastmod,
 		);
 	}
+
+	set_transient( $cache_key, $urls, HOUR_IN_SECONDS );
 	return $urls;
 }
 

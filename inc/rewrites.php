@@ -23,7 +23,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 function hc_query_vars( array $vars ): array {
 	$vars[] = 'hc_versus';  // "slug-a-vs-slug-b" (without -height suffix).
 	$vars[] = 'hc_sitemap'; // sitemap name: index|pages|celebrities|countries|blog|versus.
-	$vars[] = 's';          // share state (already core search var; tool reads ?s= client-side only).
 	return array_values( array_unique( $vars ) );
 }
 add_filter( 'query_vars', 'hc_query_vars' );
