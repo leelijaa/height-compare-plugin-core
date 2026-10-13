@@ -47,5 +47,4 @@ foreach ( $hooks as $hook ) {
 	if ( $timestamp ) {
 		wp_unschedule_event( $timestamp, $hook );
 	}
-	remove_action( $hook, 'hc_run_daily_age_sync' );
 }
